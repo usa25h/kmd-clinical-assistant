@@ -1,0 +1,7 @@
+node_modules/
+.expo/
+dist/
+*.orig.*
+web-build/
+.env
+.env.local
