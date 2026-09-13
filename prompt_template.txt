@@ -47,7 +47,33 @@
 
 ## 중요 지침
 1. 반드시 위 JSON 스키마만 출력하고, 다른 텍스트는 절대 포함하지 않는다.
-2. 증상이 불명확하면 `confidence: "low"`로 표시하고 가장 가능성 높은 처방을 제시한다.
+2. 증상이 불명확하더라도 `confidence: "low"`로 표시하되, **반드시 가장 가능성 높은 처방 4혈을 points 배열에 채워 반환한다. points를 빈 배열로 반환하는 것은 금지된다.**
 3. `points` 배열은 시술 순서(order)대로 정렬한다.
 4. 혈위명은 반드시 한글 정식 명칭을 사용한다 (예: 태백, 소부, 대돈).
 5. 음양 균형 원칙: 보사(補瀉) 총 4혈이 기본이며, 보조혈 추가 가능.
+6. points 배열 누락 또는 빈 배열 출력은 절대 불가. 항상 최소 4개 경혈 항목을 포함해야 한다.
+
+## 처방 예시 (비허증 → 비정격)
+```json
+{
+  "diagnosis": {
+    "pattern": "비허증",
+    "primary_meridian": "비경",
+    "secondary_meridian": "심경",
+    "imbalance_type": "허(虛)"
+  },
+  "prescription": {
+    "method": "정격",
+    "points": [
+      {"point": "소부", "point_code": "HT8", "side": "좌", "action": "보", "order": 1},
+      {"point": "대도", "point_code": "SP2", "side": "좌", "action": "보", "order": 2},
+      {"point": "대돈", "point_code": "LR1", "side": "좌", "action": "사", "order": 3},
+      {"point": "은백", "point_code": "SP1", "side": "좌", "action": "사", "order": 4}
+    ]
+  },
+  "secondary_treatment": {"points": [], "notes": null},
+  "rationale": "비토허증으로 화생토 원리에 따라 심화(HT8, SP2)를 보하고 목극토를 억제하기 위해 간목(LR1, SP1)을 사한다.",
+  "caution": null,
+  "confidence": "high"
+}
+```
