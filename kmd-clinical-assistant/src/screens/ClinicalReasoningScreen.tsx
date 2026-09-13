@@ -6,6 +6,8 @@ import { useTheme, typography, spacing, radii } from '../theme';
 import { useClinicalReasoning } from '../hooks/useClinicalReasoning';
 import type { DiagnosticPattern, AcupointRecommendation } from '../hooks/useClinicalReasoning';
 import type { RootStackParamList } from '../navigation/types';
+import { useSession } from '../context/SessionContext';
+import { fetchPrescription, type PrescriptionResponse, type PrescriptionPoint } from '../lib/api';
 
 // ── Confidence bar ────────────────────────────────────────────────────────────
 
@@ -113,11 +115,114 @@ function AcupointRow({ point }: { point: AcupointRecommendation }) {
   );
 }
 
+// ── Saam prescription card ────────────────────────────────────────────────────
+
+const ACTION_COLOR: Record<string, string> = {
+  보: '#22c55e',
+  사: '#ef4444',
+};
+
+function SaamPointRow({ pt }: { pt: PrescriptionPoint }) {
+  const colors = useTheme();
+  const action = pt.action;
+  const dotColor = ACTION_COLOR[action] ?? colors.accentFill;
+  return (
+    <View style={saamStyles.row}>
+      <View style={[saamStyles.orderBadge, { backgroundColor: colors.surface2 }]}>
+        <Text style={[saamStyles.orderText, { color: colors.textMuted }]}>{pt.order}</Text>
+      </View>
+      <View style={[saamStyles.codeBadge, { backgroundColor: colors.accentSubtle }]}>
+        <Text style={[saamStyles.codeText, { color: colors.accentFill }]}>{pt.point_code}</Text>
+      </View>
+      <Text style={[saamStyles.pointName, { color: colors.textPrimary }]}>{pt.point}</Text>
+      <Text style={[saamStyles.side, { color: colors.textSecondary }]}>{pt.side}</Text>
+      <View style={[saamStyles.actionBadge, { backgroundColor: dotColor + '22' }]}>
+        <Text style={[saamStyles.actionText, { color: dotColor }]}>{action}</Text>
+      </View>
+    </View>
+  );
+}
+
+function SaamPrescriptionPanel({ result }: { result: PrescriptionResponse }) {
+  const colors = useTheme();
+  const confidenceColor =
+    result.confidence === 'high' ? '#22c55e' : result.confidence === 'medium' ? '#f59e0b' : '#ef4444';
+
+  return (
+    <View style={[saamStyles.panel, { backgroundColor: colors.surface1, borderColor: colors.accentFill + '55' }]}>
+      {/* Header */}
+      <View style={saamStyles.panelHeader}>
+        <Text style={[saamStyles.patternLabel, { color: colors.textPrimary }]}>
+          {result.diagnosis.pattern}
+        </Text>
+        <View style={[saamStyles.confBadge, { backgroundColor: confidenceColor + '22' }]}>
+          <Text style={[saamStyles.confText, { color: confidenceColor }]}>{result.confidence}</Text>
+        </View>
+      </View>
+      <Text style={[saamStyles.methodLabel, { color: colors.textMuted }]}>
+        처방법: <Text style={{ color: colors.textSecondary }}>{result.prescription.method}</Text>
+      </Text>
+
+      {/* Points */}
+      <View style={[saamStyles.pointList, { borderColor: colors.border }]}>
+        {result.prescription.points.map((pt) => (
+          <SaamPointRow key={`${pt.point_code}-${pt.order}`} pt={pt} />
+        ))}
+      </View>
+
+      {/* Rationale */}
+      <Text style={[saamStyles.rationaleText, { color: colors.textSecondary }]}>
+        {result.rationale}
+      </Text>
+
+      {/* Caution */}
+      {result.caution ? (
+        <View style={[saamStyles.cautionBox, { backgroundColor: '#ef444422', borderColor: '#ef4444' }]}>
+          <Text style={[saamStyles.cautionText, { color: '#ef4444' }]}>⚠ {result.caution}</Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 export function ClinicalReasoningScreen() {
   const colors = useTheme();
   const { patterns, acupoints, evidenceChips, isLoading } = useClinicalReasoning();
+  const { session } = useSession();
+  const [saamResult, setSaamResult] = useState<PrescriptionResponse | null>(null);
+  const [saamLoading, setSaamLoading] = useState(false);
+  const [saamError, setSaamError] = useState<string | null>(null);
+
+  const handleSaamPrescription = async () => {
+    setSaamLoading(true);
+    setSaamError(null);
+    setSaamResult(null);
+    try {
+      const pulseDesc = [
+        session.pulse.buChim !== 0 ? `부침${session.pulse.buChim > 0 ? '+' : ''}${session.pulse.buChim}` : null,
+        session.pulse.jiSak !== 0 ? `지삭${session.pulse.jiSak > 0 ? '+' : ''}${session.pulse.jiSak}` : null,
+        session.pulse.heoSil !== 0 ? `허실${session.pulse.heoSil > 0 ? '+' : ''}${session.pulse.heoSil}` : null,
+      ]
+        .filter(Boolean)
+        .join(', ');
+
+      const result = await fetchPrescription({
+        age: 45,
+        gender: '남',
+        chief_complaint: session.chiefComplaints.join(', ') || '통증',
+        secondary_symptoms: session.tongueFindings,
+        pulse: pulseDesc || undefined,
+        tongue: session.tongueFindings.join(', ') || undefined,
+      });
+      setSaamResult(result);
+    } catch (e: unknown) {
+      setSaamError(e instanceof Error ? e.message : '오류가 발생했습니다.');
+    } finally {
+      setSaamLoading(false);
+    }
+  };
 
   return (
     <ScrollView
@@ -166,6 +271,34 @@ export function ClinicalReasoningScreen() {
             </React.Fragment>
           ))}
         </View>
+      </View>
+
+      {/* Saam prescription */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>사암침 처방</Text>
+        <Pressable
+          onPress={handleSaamPrescription}
+          disabled={saamLoading}
+          style={({ pressed }) => [
+            saamStyles.button,
+            { backgroundColor: pressed ? colors.accentFill + 'cc' : colors.accentFill },
+            saamLoading && { opacity: 0.6 },
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel="사암침 AI 처방 생성"
+        >
+          {saamLoading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={saamStyles.buttonText}>사암침 AI 처방 생성</Text>
+          )}
+        </Pressable>
+
+        {saamError && (
+          <Text style={[saamStyles.errorText, { color: '#ef4444' }]}>{saamError}</Text>
+        )}
+
+        {saamResult && <SaamPrescriptionPanel result={saamResult} />}
       </View>
     </ScrollView>
   );
@@ -346,5 +479,119 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: typography.fontSize.sm,
+  },
+});
+
+const saamStyles = StyleSheet.create({
+  button: {
+    borderRadius: radii.md,
+    paddingVertical: spacing[3],
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.medium,
+  },
+  errorText: {
+    fontSize: typography.fontSize.sm,
+    marginTop: spacing[2],
+  },
+  panel: {
+    borderRadius: radii.md,
+    borderWidth: 1.5,
+    padding: spacing[4],
+    gap: spacing[3],
+    marginTop: spacing[2],
+  },
+  panelHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  patternLabel: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.medium,
+    flex: 1,
+  },
+  confBadge: {
+    paddingHorizontal: spacing[2],
+    paddingVertical: 2,
+    borderRadius: radii.sm,
+  },
+  confText: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.medium,
+  },
+  methodLabel: {
+    fontSize: typography.fontSize.sm,
+  },
+  pointList: {
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[3],
+  },
+  orderBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  orderText: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.medium,
+  },
+  codeBadge: {
+    paddingHorizontal: spacing[2],
+    paddingVertical: 2,
+    borderRadius: radii.sm,
+    minWidth: 52,
+    alignItems: 'center',
+  },
+  codeText: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.medium,
+  },
+  pointName: {
+    flex: 1,
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.regular,
+  },
+  side: {
+    fontSize: typography.fontSize.xs,
+  },
+  actionBadge: {
+    paddingHorizontal: spacing[2],
+    paddingVertical: 2,
+    borderRadius: radii.sm,
+    minWidth: 28,
+    alignItems: 'center',
+  },
+  actionText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.medium,
+  },
+  rationaleText: {
+    fontSize: typography.fontSize.sm,
+    lineHeight: typography.fontSize.sm * 1.6,
+  },
+  cautionBox: {
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    padding: spacing[3],
+  },
+  cautionText: {
+    fontSize: typography.fontSize.sm,
+    lineHeight: typography.fontSize.sm * 1.5,
   },
 });
