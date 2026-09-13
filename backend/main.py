@@ -80,7 +80,7 @@ async def get_prescription(patient: PatientInput):
     prompt = build_user_prompt(patient)
     try:
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-3.6-flash",
             config=types.GenerateContentConfig(
                 system_instruction=SYSTEM_INSTRUCTION,
                 response_mime_type="application/json",
