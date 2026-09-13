@@ -9,9 +9,19 @@ import google.generativeai as genai
 
 load_dotenv()
 
-# Load system prompt once at startup
-_PROMPT_PATH = Path(__file__).parent.parent / "prompt_template.txt"
-SYSTEM_INSTRUCTION = _PROMPT_PATH.read_text(encoding="utf-8")
+# Load system prompt — resolve from PROMPT_PATH env var, repo root, or file-relative
+def _load_prompt() -> str:
+    candidates = [
+        Path(os.getenv("PROMPT_PATH", "")),
+        Path("prompt_template.txt"),                       # cwd = repo root (Railway)
+        Path(__file__).parent.parent / "prompt_template.txt",  # local dev
+    ]
+    for p in candidates:
+        if p.is_file():
+            return p.read_text(encoding="utf-8")
+    raise FileNotFoundError("prompt_template.txt not found")
+
+SYSTEM_INSTRUCTION = _load_prompt()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
