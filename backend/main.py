@@ -5,21 +5,23 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 load_dotenv()
 
-# Load system prompt — resolve from PROMPT_PATH env var, repo root, or file-relative
+
 def _load_prompt() -> str:
     candidates = [
         Path(os.getenv("PROMPT_PATH", "")),
-        Path("prompt_template.txt"),                       # cwd = repo root (Railway)
-        Path(__file__).parent.parent / "prompt_template.txt",  # local dev
+        Path("prompt_template.txt"),
+        Path(__file__).parent.parent / "prompt_template.txt",
     ]
     for p in candidates:
         if p.is_file():
             return p.read_text(encoding="utf-8")
     raise FileNotFoundError("prompt_template.txt not found")
+
 
 SYSTEM_INSTRUCTION = _load_prompt()
 
@@ -27,16 +29,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     raise RuntimeError("GEMINI_API_KEY is not set in environment")
 
-genai.configure(api_key=GEMINI_API_KEY)
-
-model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
-    system_instruction=SYSTEM_INSTRUCTION,
-    generation_config=genai.GenerationConfig(
-        response_mime_type="application/json",
-        temperature=0.2,
-    ),
-)
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 app = FastAPI(title="KMD Clinical Assistant", version="1.0.0")
 
@@ -50,19 +43,19 @@ app.add_middleware(
 
 class PatientInput(BaseModel):
     age: int
-    gender: str                        # "남" | "여"
-    chief_complaint: str               # 주증상
-    affected_side: str | None = None   # "좌" | "우" | "양측" | None
-    secondary_symptoms: list[str] = [] # 부증상 목록
-    pulse: str | None = None           # 맥상 (예: "침세")
-    tongue: str | None = None          # 설진 (예: "담백설 백태")
-    duration: str | None = None        # 이환기간 (예: "3개월")
+    gender: str
+    chief_complaint: str
+    affected_side: str | None = None
+    secondary_symptoms: list[str] = []
+    pulse: str | None = None
+    tongue: str | None = None
+    duration: str | None = None
     additional_notes: str | None = None
 
 
 def build_user_prompt(p: PatientInput) -> str:
     lines = [
-        f"환자 정보:",
+        "환자 정보:",
         f"- 나이: {p.age}세, 성별: {p.gender}",
         f"- 주증상: {p.chief_complaint}",
     ]
@@ -86,7 +79,15 @@ def build_user_prompt(p: PatientInput) -> str:
 async def get_prescription(patient: PatientInput):
     prompt = build_user_prompt(patient)
     try:
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_INSTRUCTION,
+                response_mime_type="application/json",
+                temperature=0.2,
+            ),
+            contents=prompt,
+        )
         prescription = json.loads(response.text)
         return prescription
     except json.JSONDecodeError as e:
