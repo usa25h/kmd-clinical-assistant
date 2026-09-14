@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTheme, typography, spacing, radii } from '../theme';
 import { WaveformBars } from './WaveformBars';
 
-const MIC_SIZE = 80;
+const MIC_SIZE = 48;
 
 interface VoiceRecordingPanelProps {
   isRecording: boolean;
@@ -24,50 +24,54 @@ export function VoiceRecordingPanel({
 
   return (
     <View style={[styles.panel, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-      {/* Waveform appears only while recording */}
-      {isRecording && <WaveformBars active={isRecording} color={colors.dangerFill} />}
+      <View style={styles.row}>
+        {/* Mic / stop button */}
+        <Pressable
+          onPress={handlePress}
+          accessibilityRole="button"
+          accessibilityLabel={isRecording ? '녹음 중지' : '녹음 시작'}
+          style={({ pressed }) => [
+            styles.micButton,
+            {
+              backgroundColor: isRecording ? colors.dangerFill : colors.surface2,
+              borderColor: isRecording ? colors.dangerFill : colors.border,
+            },
+            pressed && styles.pressed,
+          ]}
+        >
+          {isRecording ? (
+            <View style={[styles.stopIcon, { backgroundColor: colors.dangerText }]} />
+          ) : (
+            <View style={[styles.recordIcon, { backgroundColor: colors.dangerFill }]} />
+          )}
+        </Pressable>
 
-      {/* Mic / stop button */}
-      <Pressable
-        onPress={handlePress}
-        accessibilityRole="button"
-        accessibilityLabel={isRecording ? '녹음 중지' : '녹음 시작'}
-        style={({ pressed }) => [
-          styles.micButton,
-          {
-            backgroundColor: isRecording ? colors.dangerFill : colors.surface2,
-            borderColor: isRecording ? colors.dangerFill : colors.border,
-          },
-          pressed && styles.pressed,
-        ]}
-      >
-        {/* Icon: circle when idle, square when recording */}
-        {isRecording ? (
-          <View style={[styles.stopIcon, { backgroundColor: colors.dangerText }]} />
-        ) : (
-          <View style={[styles.recordIcon, { backgroundColor: colors.dangerFill }]} />
-        )}
-      </Pressable>
-
-      {/* Status / transcript line */}
-      {liveTranscript ? (
-        <Text style={[styles.transcript, { color: colors.textSecondary }]}>{liveTranscript}</Text>
-      ) : (
-        <Text style={[styles.hint, { color: colors.textMuted }]}>
-          {isRecording ? '듣고 있어요…' : '버튼을 눌러 증상을 말해주세요'}
-        </Text>
-      )}
+        {/* Status / transcript */}
+        <View style={styles.textArea}>
+          {isRecording && <WaveformBars active={isRecording} color={colors.dangerFill} />}
+          {liveTranscript ? (
+            <Text style={[styles.transcript, { color: colors.textSecondary }]}>{liveTranscript}</Text>
+          ) : (
+            <Text style={[styles.hint, { color: colors.textMuted }]}>
+              {isRecording ? '듣고 있어요…' : '버튼을 눌러 증상을 말해주세요'}
+            </Text>
+          )}
+        </View>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   panel: {
-    alignItems: 'center',
-    paddingVertical: spacing[5],
+    paddingVertical: spacing[3],
     paddingHorizontal: spacing[4],
     borderRadius: radii.lg,
     borderWidth: 1,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing[3],
   },
   micButton: {
@@ -77,30 +81,34 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
+  },
+  textArea: {
+    flex: 1,
+    gap: spacing[1],
   },
   pressed: {
     opacity: 0.78,
     transform: [{ scale: 0.95 }],
   },
   recordIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
   },
   stopIcon: {
-    width: 22,
-    height: 22,
-    borderRadius: 4,
+    width: 14,
+    height: 14,
+    borderRadius: 3,
   },
   transcript: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.regular,
-    textAlign: 'center',
     lineHeight: typography.fontSize.sm * 1.55,
   },
   hint: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.regular,
-    textAlign: 'center',
+    color: 'gray',
   },
 });
