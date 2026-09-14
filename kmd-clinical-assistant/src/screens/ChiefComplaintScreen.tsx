@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme, typography, spacing, radii } from '../theme';
 import { useSTT, type STTField } from '../hooks';
 import { useSession } from '../context/SessionContext';
+import type { PatientInfo } from '../context/SessionContext';
 import type { RootStackParamList } from '../navigation/types';
 import {
-  PatientInfoBar,
-  type Patient,
   VoiceRecordingPanel,
   Chip,
   ChipRow,
@@ -18,15 +17,6 @@ import {
 } from '../components';
 
 // ─── Static data ──────────────────────────────────────────────────────────────
-
-const MOCK_PATIENT: Patient = {
-  name: '김민수',
-  initials: '김민',
-  age: 45,
-  sex: '남',
-  visitType: '초진',
-  lastVisitDate: '2025-12-18',
-};
 
 const CHIEF_COMPLAINT_CHIPS = [
   '두통', '복통', '요통', '경항통', '소화불량',
@@ -39,6 +29,10 @@ const TONGUE_CHIPS = [
   '치흔설', '열문설',
 ];
 
+const BODY_TYPE_CHIPS = ['마른형', '보통형', '비만형', '근육형', '부종형'];
+const AFFECTED_SIDE_CHIPS = ['좌측', '우측', '양측', '없음'];
+const DURATION_CHIPS = ['1일 이내', '1주 이내', '1개월 이내', '3개월 이내', '6개월 이상', '1년 이상'];
+
 // Total "slots" used for time-remaining estimate
 const TOTAL_SLOTS = CHIEF_COMPLAINT_CHIPS.length + TONGUE_CHIPS.length + 2; // +2 for buChim, jiSak
 const SECONDS_PER_SLOT = 3;
@@ -46,13 +40,31 @@ const SECONDS_PER_SLOT = 3;
 // Low-confidence threshold: chips below this show the amber "(오인식?)" variant
 const LOW_CONF_THRESHOLD = 0.7;
 
+function bmi(weightKg: number, heightCm: number) {
+  const h = heightCm / 100;
+  return (weightKg / (h * h)).toFixed(1);
+}
+
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export function ChiefComplaintScreen() {
   const colors = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { dispatch } = useSession();
+  const { session, dispatch } = useSession();
   const stt = useSTT();
+
+  // Patient basic info
+  const [age, setAge] = useState(String(session.patientInfo.age));
+  const [gender, setGender] = useState<'남' | '여' | '미지정'>(session.patientInfo.gender);
+  const [heightCm, setHeightCm] = useState(session.patientInfo.heightCm ? String(session.patientInfo.heightCm) : '');
+  const [weightKg, setWeightKg] = useState(session.patientInfo.weightKg ? String(session.patientInfo.weightKg) : '');
+  const [bodyType, setBodyType] = useState<string | null>(session.patientInfo.bodyType);
+  const [affectedSide, setAffectedSide] = useState<string | null>(session.patientInfo.affectedSide);
+  const [duration, setDuration] = useState<string | null>(session.patientInfo.duration);
+
+  const h = parseFloat(heightCm);
+  const w = parseFloat(weightKg);
+  const bmiValue = h > 0 && w > 0 ? bmi(w, h) : null;
 
   // Quick-select state
   const [selectedCC, setSelectedCC] = useState<Set<string>>(new Set());
@@ -119,6 +131,17 @@ export function ChiefComplaintScreen() {
   const isLowConf = (f: STTField) => f.confidence < LOW_CONF_THRESHOLD;
 
   const handleProceed = useCallback(() => {
+    const parsedAge = parseInt(age, 10);
+    const patientInfo: PatientInfo = {
+      age: isNaN(parsedAge) ? 45 : parsedAge,
+      gender,
+      heightCm: h > 0 ? h : null,
+      weightKg: w > 0 ? w : null,
+      bodyType,
+      affectedSide,
+      duration,
+    };
+    dispatch({ type: 'SET_PATIENT_INFO', info: patientInfo });
     dispatch({
       type: 'SET_CHIEF_COMPLAINT',
       complaints: Array.from(selectedCC),
@@ -126,7 +149,7 @@ export function ChiefComplaintScreen() {
       pulse,
     });
     navigation.navigate('AIInterview');
-  }, [dispatch, navigation, selectedCC, selectedTongue, pulse]);
+  }, [dispatch, navigation, selectedCC, selectedTongue, pulse, age, gender, h, w, bodyType, affectedSide, duration]);
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
@@ -138,8 +161,100 @@ export function ChiefComplaintScreen() {
         scrollEnabled={scrollEnabled}
         keyboardShouldPersistTaps="handled"
       >
-        {/* ① Patient info bar */}
-        <PatientInfoBar patient={MOCK_PATIENT} />
+        {/* ① Patient basic info form */}
+        <View style={[styles.infoCard, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>기본정보</Text>
+
+          {/* Age + Gender row */}
+          <View style={styles.rowGap}>
+            <View style={styles.fieldGroup}>
+              <Text style={[styles.fieldLabel, { color: colors.textMuted }]}>나이</Text>
+              <TextInput
+                style={[styles.numInput, { backgroundColor: colors.surface0, color: colors.textPrimary, borderColor: colors.border }]}
+                keyboardType="number-pad"
+                value={age}
+                onChangeText={setAge}
+                maxLength={3}
+                placeholder="45"
+                placeholderTextColor={colors.textMuted}
+              />
+            </View>
+            <View style={styles.fieldGroup}>
+              <Text style={[styles.fieldLabel, { color: colors.textMuted }]}>성별</Text>
+              <View style={styles.genderRow}>
+                {(['남', '여', '미지정'] as const).map((g) => (
+                  <Pressable
+                    key={g}
+                    onPress={() => setGender(g)}
+                    style={[
+                      styles.genderChip,
+                      { borderColor: gender === g ? colors.accentFill : colors.border,
+                        backgroundColor: gender === g ? colors.accentSubtle : colors.surface0 },
+                    ]}
+                  >
+                    <Text style={[styles.genderChipText, { color: gender === g ? colors.accentFill : colors.textSecondary }]}>{g}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          </View>
+
+          {/* Height + Weight + BMI */}
+          <View style={styles.rowGap}>
+            <View style={styles.fieldGroup}>
+              <Text style={[styles.fieldLabel, { color: colors.textMuted }]}>키 (cm)</Text>
+              <TextInput
+                style={[styles.numInput, { backgroundColor: colors.surface0, color: colors.textPrimary, borderColor: colors.border }]}
+                keyboardType="decimal-pad"
+                value={heightCm}
+                onChangeText={setHeightCm}
+                maxLength={5}
+                placeholder="170"
+                placeholderTextColor={colors.textMuted}
+              />
+            </View>
+            <View style={styles.fieldGroup}>
+              <Text style={[styles.fieldLabel, { color: colors.textMuted }]}>몸무게 (kg)</Text>
+              <TextInput
+                style={[styles.numInput, { backgroundColor: colors.surface0, color: colors.textPrimary, borderColor: colors.border }]}
+                keyboardType="decimal-pad"
+                value={weightKg}
+                onChangeText={setWeightKg}
+                maxLength={5}
+                placeholder="70"
+                placeholderTextColor={colors.textMuted}
+              />
+            </View>
+            {bmiValue && (
+              <View style={styles.fieldGroup}>
+                <Text style={[styles.fieldLabel, { color: colors.textMuted }]}>BMI</Text>
+                <View style={[styles.bmiBadge, { backgroundColor: colors.accentSubtle }]}>
+                  <Text style={[styles.bmiValue, { color: colors.accentFill }]}>{bmiValue}</Text>
+                </View>
+              </View>
+            )}
+          </View>
+
+          {/* Body type */}
+          <View>
+            <Text style={[styles.fieldLabel, { color: colors.textMuted, marginBottom: spacing[2] }]}>체형</Text>
+            <View style={styles.chipWrap}>
+              {BODY_TYPE_CHIPS.map((bt) => (
+                <Pressable
+                  key={bt}
+                  onPress={() => setBodyType(bodyType === bt ? null : bt)}
+                  style={[
+                    styles.smallChip,
+                    { borderColor: bodyType === bt ? colors.accentFill : colors.border,
+                      backgroundColor: bodyType === bt ? colors.accentSubtle : colors.surface0 },
+                  ]}
+                >
+                  <Text style={[styles.smallChipText, { color: bodyType === bt ? colors.accentFill : colors.textSecondary }]}>{bt}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        </View>
 
         {/* ② Recording section header + countdown badge */}
         <View style={styles.rowBetween}>
@@ -192,7 +307,47 @@ export function ChiefComplaintScreen() {
           />
         </View>
 
-        {/* ④ Tongue Diagnosis quick-select */}
+        {/* ④b Affected Side */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>환측 (affected side)</Text>
+          <View style={styles.chipWrap}>
+            {AFFECTED_SIDE_CHIPS.map((s) => (
+              <Pressable
+                key={s}
+                onPress={() => setAffectedSide(affectedSide === s ? null : s)}
+                style={[
+                  styles.smallChip,
+                  { borderColor: affectedSide === s ? colors.accentFill : colors.border,
+                    backgroundColor: affectedSide === s ? colors.accentSubtle : colors.surface1 },
+                ]}
+              >
+                <Text style={[styles.smallChipText, { color: affectedSide === s ? colors.accentFill : colors.textSecondary }]}>{s}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        {/* ④c Duration */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>이환기간 (duration)</Text>
+          <View style={styles.chipWrap}>
+            {DURATION_CHIPS.map((d) => (
+              <Pressable
+                key={d}
+                onPress={() => setDuration(duration === d ? null : d)}
+                style={[
+                  styles.smallChip,
+                  { borderColor: duration === d ? colors.accentFill : colors.border,
+                    backgroundColor: duration === d ? colors.accentSubtle : colors.surface1 },
+                ]}
+              >
+                <Text style={[styles.smallChipText, { color: duration === d ? colors.accentFill : colors.textSecondary }]}>{d}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        {/* ④d Tongue Diagnosis quick-select */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
             설진 (tongue diagnosis)
@@ -309,6 +464,79 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing[2],
+  },
+  // Patient info card
+  infoCard: {
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    padding: spacing[4],
+    gap: spacing[3],
+  },
+  rowGap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing[3],
+    alignItems: 'flex-end',
+  },
+  fieldGroup: {
+    gap: spacing[1],
+  },
+  fieldLabel: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.medium,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  numInput: {
+    borderWidth: 1,
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
+    fontSize: typography.fontSize.base,
+    minWidth: 72,
+    height: 40,
+  },
+  genderRow: {
+    flexDirection: 'row',
+    gap: spacing[1],
+  },
+  genderChip: {
+    borderWidth: 1,
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing[2],
+    paddingVertical: spacing[1],
+    minHeight: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  genderChipText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.medium,
+  },
+  bmiBadge: {
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bmiValue: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.medium,
+  },
+  smallChip: {
+    borderWidth: 1,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[1],
+    minHeight: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  smallChipText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.regular,
   },
   accordionToggle: {
     paddingVertical: spacing[2],

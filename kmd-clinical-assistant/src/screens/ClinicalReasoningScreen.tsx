@@ -147,40 +147,82 @@ function SaamPrescriptionPanel({ result }: { result: PrescriptionResponse }) {
   const colors = useTheme();
   const confidenceColor =
     result.confidence === 'high' ? '#22c55e' : result.confidence === 'medium' ? '#f59e0b' : '#ef4444';
+  const imbalanceColor = result.diagnosis.imbalance_type?.startsWith('허') ? '#60a5fa' : '#f97316';
 
   return (
-    <View style={[saamStyles.panel, { backgroundColor: colors.surface1, borderColor: colors.accentFill + '55' }]}>
-      {/* Header */}
-      <View style={saamStyles.panelHeader}>
-        <Text style={[saamStyles.patternLabel, { color: colors.textPrimary }]}>
-          {result.diagnosis.pattern}
-        </Text>
-        <View style={[saamStyles.confBadge, { backgroundColor: confidenceColor + '22' }]}>
-          <Text style={[saamStyles.confText, { color: confidenceColor }]}>{result.confidence}</Text>
+    <View style={saamStyles.panelWrap}>
+      {/* 변증 분석 dark card */}
+      <View style={[saamStyles.diagCard, { backgroundColor: '#0f172a', borderColor: colors.accentFill + '44' }]}>
+        <Text style={saamStyles.diagTitle}>변증 분석</Text>
+        <View style={saamStyles.diagGrid}>
+          <View style={saamStyles.diagCell}>
+            <Text style={saamStyles.diagLabel}>패턴</Text>
+            <Text style={saamStyles.diagValue}>{result.diagnosis.pattern}</Text>
+          </View>
+          <View style={saamStyles.diagCell}>
+            <Text style={saamStyles.diagLabel}>주 경락</Text>
+            <Text style={saamStyles.diagValue}>{result.diagnosis.primary_meridian}</Text>
+          </View>
+          {result.diagnosis.secondary_meridian && (
+            <View style={saamStyles.diagCell}>
+              <Text style={saamStyles.diagLabel}>보조 경락</Text>
+              <Text style={saamStyles.diagValue}>{result.diagnosis.secondary_meridian}</Text>
+            </View>
+          )}
+          <View style={saamStyles.diagCell}>
+            <Text style={saamStyles.diagLabel}>허/실</Text>
+            <Text style={[saamStyles.diagValue, { color: imbalanceColor }]}>{result.diagnosis.imbalance_type}</Text>
+          </View>
+        </View>
+        <View style={[saamStyles.confBadge, { backgroundColor: confidenceColor + '22', alignSelf: 'flex-start', marginTop: spacing[2] }]}>
+          <Text style={[saamStyles.confText, { color: confidenceColor }]}>신뢰도: {result.confidence}</Text>
         </View>
       </View>
-      <Text style={[saamStyles.methodLabel, { color: colors.textMuted }]}>
-        처방법: <Text style={{ color: colors.textSecondary }}>{result.prescription.method}</Text>
-      </Text>
 
-      {/* Points */}
-      <View style={[saamStyles.pointList, { borderColor: colors.border }]}>
-        {result.prescription.points.map((pt) => (
-          <SaamPointRow key={`${pt.point_code}-${pt.order}`} pt={pt} />
-        ))}
-      </View>
-
-      {/* Rationale */}
-      <Text style={[saamStyles.rationaleText, { color: colors.textSecondary }]}>
-        {result.rationale}
-      </Text>
-
-      {/* Caution */}
-      {result.caution ? (
-        <View style={[saamStyles.cautionBox, { backgroundColor: '#ef444422', borderColor: '#ef4444' }]}>
-          <Text style={[saamStyles.cautionText, { color: '#ef4444' }]}>⚠ {result.caution}</Text>
+      {/* 사암 처방 card */}
+      <View style={[saamStyles.panel, { backgroundColor: colors.surface1, borderColor: colors.accentFill + '55' }]}>
+        <View style={saamStyles.panelHeader}>
+          <Text style={[saamStyles.patternLabel, { color: colors.textPrimary }]}>
+            사암침 {result.prescription.method}
+          </Text>
         </View>
-      ) : null}
+
+        <View style={[saamStyles.pointList, { borderColor: colors.border }]}>
+          {result.prescription.points.map((pt) => (
+            <SaamPointRow key={`${pt.point_code}-${pt.order}`} pt={pt} />
+          ))}
+        </View>
+
+        {/* Secondary treatment */}
+        {result.secondary_treatment?.points && result.secondary_treatment.points.length > 0 && (
+          <View style={[saamStyles.secondaryBox, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
+            <Text style={[saamStyles.secondaryTitle, { color: colors.textMuted }]}>보조혈</Text>
+            <Text style={[saamStyles.rationaleText, { color: colors.textSecondary }]}>
+              {result.secondary_treatment.points.join(', ')}
+            </Text>
+            {result.secondary_treatment.notes && (
+              <Text style={[saamStyles.rationaleText, { color: colors.textSecondary, marginTop: 4 }]}>
+                {result.secondary_treatment.notes}
+              </Text>
+            )}
+          </View>
+        )}
+
+        {/* Rationale */}
+        <View style={[saamStyles.rationalBox, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
+          <Text style={[saamStyles.secondaryTitle, { color: colors.textMuted }]}>처방 근거</Text>
+          <Text style={[saamStyles.rationaleText, { color: colors.textSecondary }]}>
+            {result.rationale}
+          </Text>
+        </View>
+
+        {/* Caution */}
+        {result.caution ? (
+          <View style={[saamStyles.cautionBox, { backgroundColor: '#ef444422', borderColor: '#ef4444' }]}>
+            <Text style={[saamStyles.cautionText, { color: '#ef4444' }]}>⚠ {result.caution}</Text>
+          </View>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -208,13 +250,22 @@ export function ClinicalReasoningScreen() {
         .filter(Boolean)
         .join(', ');
 
+      const { patientInfo } = session;
       const result = await fetchPrescription({
-        age: 45,
-        gender: '남',
+        age: patientInfo.age,
+        gender: patientInfo.gender,
         chief_complaint: session.chiefComplaints.join(', ') || '통증',
-        secondary_symptoms: session.tongueFindings,
+        affected_side: patientInfo.affectedSide ?? undefined,
+        secondary_symptoms: session.tongueFindings.length > 0 ? session.tongueFindings : undefined,
         pulse: pulseDesc || undefined,
         tongue: session.tongueFindings.join(', ') || undefined,
+        duration: patientInfo.duration ?? undefined,
+        additional_notes: [
+          patientInfo.bodyType ? `체형: ${patientInfo.bodyType}` : null,
+          patientInfo.heightCm && patientInfo.weightKg
+            ? `키: ${patientInfo.heightCm}cm, 몸무게: ${patientInfo.weightKg}kg`
+            : null,
+        ].filter(Boolean).join('; ') || undefined,
       });
       setSaamResult(result);
     } catch (e: unknown) {
@@ -499,12 +550,47 @@ const saamStyles = StyleSheet.create({
     fontSize: typography.fontSize.sm,
     marginTop: spacing[2],
   },
+  panelWrap: {
+    gap: spacing[3],
+    marginTop: spacing[2],
+  },
+  // 변증 분석 dark card
+  diagCard: {
+    borderRadius: radii.md,
+    borderWidth: 1.5,
+    padding: spacing[4],
+    gap: spacing[3],
+  },
+  diagTitle: {
+    color: '#e2e8f0',
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.medium,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  diagGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing[3],
+  },
+  diagCell: {
+    gap: 2,
+    minWidth: 80,
+  },
+  diagLabel: {
+    color: '#64748b',
+    fontSize: typography.fontSize.xs,
+  },
+  diagValue: {
+    color: '#f1f5f9',
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.medium,
+  },
   panel: {
     borderRadius: radii.md,
     borderWidth: 1.5,
     padding: spacing[4],
     gap: spacing[3],
-    marginTop: spacing[2],
   },
   panelHeader: {
     flexDirection: 'row',
@@ -525,13 +611,28 @@ const saamStyles = StyleSheet.create({
     fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.medium,
   },
-  methodLabel: {
-    fontSize: typography.fontSize.sm,
-  },
   pointList: {
     borderRadius: radii.sm,
     borderWidth: 1,
     overflow: 'hidden',
+  },
+  secondaryBox: {
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    padding: spacing[3],
+    gap: 4,
+  },
+  rationalBox: {
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    padding: spacing[3],
+    gap: 4,
+  },
+  secondaryTitle: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.medium,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
   },
   row: {
     flexDirection: 'row',

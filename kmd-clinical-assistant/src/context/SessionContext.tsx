@@ -9,7 +9,18 @@ export interface PulseFindings {
   heoSil: number;
 }
 
+export interface PatientInfo {
+  age: number;
+  gender: '남' | '여' | '미지정';
+  heightCm: number | null;
+  weightKg: number | null;
+  bodyType: string | null;
+  affectedSide: string | null;
+  duration: string | null;
+}
+
 export interface SessionState {
+  patientInfo: PatientInfo;
   chiefComplaints: string[];
   tongueFindings: string[];
   pulse: PulseFindings;
@@ -20,6 +31,7 @@ export interface SessionState {
 }
 
 type SessionAction =
+  | { type: 'SET_PATIENT_INFO'; info: PatientInfo }
   | {
       type: 'SET_CHIEF_COMPLAINT';
       complaints: string[];
@@ -35,7 +47,18 @@ type SessionAction =
     }
   | { type: 'RESET' };
 
+const DEFAULT_PATIENT: PatientInfo = {
+  age: 45,
+  gender: '남',
+  heightCm: null,
+  weightKg: null,
+  bodyType: null,
+  affectedSide: null,
+  duration: null,
+};
+
 const INITIAL: SessionState = {
+  patientInfo: DEFAULT_PATIENT,
   chiefComplaints: [],
   tongueFindings: [],
   pulse: { buChim: 0, jiSak: 0, heoSil: 0 },
@@ -47,6 +70,8 @@ const INITIAL: SessionState = {
 
 function reducer(state: SessionState, action: SessionAction): SessionState {
   switch (action.type) {
+    case 'SET_PATIENT_INFO':
+      return { ...state, patientInfo: action.info };
     case 'SET_CHIEF_COMPLAINT':
       return {
         ...state,
