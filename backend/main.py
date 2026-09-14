@@ -55,7 +55,9 @@ class PatientInput(BaseModel):
 
 def build_user_prompt(p: PatientInput) -> str:
     lines = [
-        "환자 정보:",
+        "[USER REQUEST] — 아래 환자 정보에 대해서만 처방을 생성하시오.",
+        "",
+        "실제 환자 정보:",
         f"- 나이: {p.age}세, 성별: {p.gender}",
         f"- 주증상: {p.chief_complaint}",
     ]
@@ -71,7 +73,11 @@ def build_user_prompt(p: PatientInput) -> str:
         lines.append(f"- 이환기간: {p.duration}")
     if p.additional_notes:
         lines.append(f"- 추가 소견: {p.additional_notes}")
-    lines.append("\n위 정보를 바탕으로 사암침 처방 JSON을 생성하시오.")
+    lines += [
+        "",
+        "위 증상을 오행이론으로 변증하고, 참조표에서 정확한 혈위를 선택하여 JSON만 출력하시오.",
+        "참조표에 없는 혈위 사용 금지. rationale에 위 환자 증상을 반드시 직접 언급할 것.",
+    ]
     return "\n".join(lines)
 
 
@@ -84,7 +90,8 @@ async def get_prescription(patient: PatientInput):
             config=types.GenerateContentConfig(
                 system_instruction=SYSTEM_INSTRUCTION,
                 response_mime_type="application/json",
-                temperature=0.2,
+                temperature=0.1,
+                candidate_count=1,
             ),
             contents=prompt,
         )
