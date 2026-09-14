@@ -7,7 +7,6 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
-from saam_table import lookup, SAAM_TABLE
 
 load_dotenv()
 
@@ -32,7 +31,7 @@ if not GEMINI_API_KEY:
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
-app = FastAPI(title="KMD Clinical Assistant", version="2.0.0")
+app = FastAPI(title="KMD Clinical Assistant", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -56,9 +55,9 @@ class PatientInput(BaseModel):
 
 def build_user_prompt(p: PatientInput) -> str:
     lines = [
-        "[USER REQUEST] — 아래 환자 정보를 변증하여 JSON만 출력하시오.",
+        "[USER REQUEST] — 아래 환자 정보에 대해서만 처방을 생성하시오.",
         "",
-        "환자 정보:",
+        "실제 환자 정보:",
         f"- 나이: {p.age}세, 성별: {p.gender}",
         f"- 주증상: {p.chief_complaint}",
     ]
@@ -76,53 +75,11 @@ def build_user_prompt(p: PatientInput) -> str:
         lines.append(f"- 추가 소견: {p.additional_notes}")
     lines += [
         "",
-        "위 증상으로 장부 허실 변증 후 pattern_key를 반드시 22개 값 중 하나로 출력하시오.",
-        "rationale에 위 환자의 나이, 성별, 주증상을 직접 언급할 것.",
+        "위 증상을 오행이론으로 변증하고, 참조표에서 정확한 혈위를 선택하여 JSON만 출력하시오.",
+        "rationale에 위 환자의 나이, 성별, 주증상을 반드시 직접 언급할 것.",
+        "참조표에 없는 혈위 사용 금지.",
     ]
     return "\n".join(lines)
-
-
-def _build_prescription_response(diagnosis: dict, formula: dict, patient: PatientInput) -> dict:
-    """Assemble final response from LLM diagnosis + hardcoded table formula."""
-    points_with_side = []
-    side = patient.affected_side or "양측"
-    # Saam acupuncture: needling on contralateral side
-    contralateral = {"좌측": "우측", "우측": "좌측", "양측": "양측", "없음": "양측"}.get(side, "양측")
-
-    for pt in formula["points"]:
-        points_with_side.append({
-            "point": pt["point"],
-            "point_code": pt["point_code"],
-            "side": contralateral,
-            "action": pt["action"],
-            "order": pt["order"],
-        })
-
-    pattern_key = diagnosis.get("pattern_key", "")
-    organ = diagnosis.get("organ", "")
-    imbalance = diagnosis.get("imbalance_type", "")
-    pattern_label = f"{organ}{'허증' if imbalance == '허' else '실증'}"
-
-    return {
-        "diagnosis": {
-            "pattern": pattern_label,
-            "pattern_key": pattern_key,
-            "primary_meridian": diagnosis.get("primary_meridian") or formula.get("primary_meridian", ""),
-            "secondary_meridian": diagnosis.get("secondary_meridian") or formula.get("secondary_meridian"),
-            "imbalance_type": imbalance,
-        },
-        "prescription": {
-            "method": formula["method"],
-            "points": points_with_side,
-        },
-        "secondary_treatment": {
-            "points": [],
-            "notes": None,
-        },
-        "rationale": diagnosis.get("rationale", ""),
-        "caution": diagnosis.get("caution"),
-        "confidence": diagnosis.get("confidence", "medium"),
-    }
 
 
 @app.post("/prescription")
@@ -139,21 +96,12 @@ async def get_prescription(patient: PatientInput):
             ),
             contents=prompt,
         )
-        diagnosis = json.loads(response.text)
+        prescription = json.loads(response.text)
+        return prescription
     except json.JSONDecodeError as e:
         raise HTTPException(status_code=502, detail=f"Gemini returned invalid JSON: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-    pattern_key = diagnosis.get("pattern_key", "")
-    if pattern_key not in SAAM_TABLE:
-        raise HTTPException(
-            status_code=422,
-            detail=f"LLM returned unknown pattern_key: '{pattern_key}'. Valid keys: {list(SAAM_TABLE.keys())}",
-        )
-
-    formula = SAAM_TABLE[pattern_key]
-    return _build_prescription_response(diagnosis, formula, patient)
 
 
 @app.get("/health")
