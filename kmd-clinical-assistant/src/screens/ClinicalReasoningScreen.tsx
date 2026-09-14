@@ -250,11 +250,15 @@ export function ClinicalReasoningScreen() {
         .filter(Boolean)
         .join(', ');
 
-      const { patientInfo } = session;
+      const { patientInfo, freeTextSymptoms } = session;
+      const chiefComplaint =
+        freeTextSymptoms.trim() ||
+        session.chiefComplaints.join(', ') ||
+        '통증';
       const result = await fetchPrescription({
         age: patientInfo.age,
         gender: patientInfo.gender,
-        chief_complaint: session.chiefComplaints.join(', ') || '통증',
+        chief_complaint: chiefComplaint,
         affected_side: patientInfo.affectedSide ?? undefined,
         secondary_symptoms: session.tongueFindings.length > 0 ? session.tongueFindings : undefined,
         pulse: pulseDesc || undefined,

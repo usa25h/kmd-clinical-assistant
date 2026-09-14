@@ -21,6 +21,7 @@ export interface PatientInfo {
 
 export interface SessionState {
   patientInfo: PatientInfo;
+  freeTextSymptoms: string;
   chiefComplaints: string[];
   tongueFindings: string[];
   pulse: PulseFindings;
@@ -32,6 +33,7 @@ export interface SessionState {
 
 type SessionAction =
   | { type: 'SET_PATIENT_INFO'; info: PatientInfo }
+  | { type: 'SET_FREE_TEXT'; text: string }
   | {
       type: 'SET_CHIEF_COMPLAINT';
       complaints: string[];
@@ -59,6 +61,7 @@ const DEFAULT_PATIENT: PatientInfo = {
 
 const INITIAL: SessionState = {
   patientInfo: DEFAULT_PATIENT,
+  freeTextSymptoms: '',
   chiefComplaints: [],
   tongueFindings: [],
   pulse: { buChim: 0, jiSak: 0, heoSil: 0 },
@@ -72,6 +75,8 @@ function reducer(state: SessionState, action: SessionAction): SessionState {
   switch (action.type) {
     case 'SET_PATIENT_INFO':
       return { ...state, patientInfo: action.info };
+    case 'SET_FREE_TEXT':
+      return { ...state, freeTextSymptoms: action.text };
     case 'SET_CHIEF_COMPLAINT':
       return {
         ...state,

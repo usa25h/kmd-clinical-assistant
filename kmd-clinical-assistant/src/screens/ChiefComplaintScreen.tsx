@@ -66,6 +66,9 @@ export function ChiefComplaintScreen() {
   const w = parseFloat(weightKg);
   const bmiValue = h > 0 && w > 0 ? bmi(w, h) : null;
 
+  // Free-text direct entry
+  const [freeText, setFreeText] = useState(session.freeTextSymptoms);
+
   // Quick-select state
   const [selectedCC, setSelectedCC] = useState<Set<string>>(new Set());
   const [selectedTongue, setSelectedTongue] = useState<Set<string>>(new Set());
@@ -130,9 +133,9 @@ export function ChiefComplaintScreen() {
 
   const isLowConf = (f: STTField) => f.confidence < LOW_CONF_THRESHOLD;
 
-  const handleProceed = useCallback(() => {
+  const buildPatientInfo = useCallback((): PatientInfo => {
     const parsedAge = parseInt(age, 10);
-    const patientInfo: PatientInfo = {
+    return {
       age: isNaN(parsedAge) ? 45 : parsedAge,
       gender,
       heightCm: h > 0 ? h : null,
@@ -141,7 +144,11 @@ export function ChiefComplaintScreen() {
       affectedSide,
       duration,
     };
-    dispatch({ type: 'SET_PATIENT_INFO', info: patientInfo });
+  }, [age, gender, h, w, bodyType, affectedSide, duration]);
+
+  const handleProceed = useCallback(() => {
+    dispatch({ type: 'SET_PATIENT_INFO', info: buildPatientInfo() });
+    dispatch({ type: 'SET_FREE_TEXT', text: freeText });
     dispatch({
       type: 'SET_CHIEF_COMPLAINT',
       complaints: Array.from(selectedCC),
@@ -149,7 +156,20 @@ export function ChiefComplaintScreen() {
       pulse,
     });
     navigation.navigate('AIInterview');
-  }, [dispatch, navigation, selectedCC, selectedTongue, pulse, age, gender, h, w, bodyType, affectedSide, duration]);
+  }, [dispatch, navigation, selectedCC, selectedTongue, pulse, freeText, buildPatientInfo]);
+
+  // "바로 처방" — skip AI interview, go directly to ClinicalReasoning
+  const handleDirectPrescription = useCallback(() => {
+    dispatch({ type: 'SET_PATIENT_INFO', info: buildPatientInfo() });
+    dispatch({ type: 'SET_FREE_TEXT', text: freeText });
+    dispatch({
+      type: 'SET_CHIEF_COMPLAINT',
+      complaints: Array.from(selectedCC),
+      tongue: Array.from(selectedTongue),
+      pulse,
+    });
+    navigation.navigate('ClinicalReasoning');
+  }, [dispatch, navigation, selectedCC, selectedTongue, pulse, freeText, buildPatientInfo]);
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
@@ -409,19 +429,64 @@ export function ChiefComplaintScreen() {
           )}
         </View>
 
+        {/* ⑦ 증상 직접 서술 + 바로 처방 */}
+        <View style={[styles.infoCard, { backgroundColor: colors.surface1, borderColor: colors.accentFill + '66', borderWidth: 1.5 }]}>
+          <View style={styles.rowBetween}>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>증상 직접 서술</Text>
+            <View style={[styles.shortcutBadge, { backgroundColor: colors.accentSubtle }]}>
+              <Text style={[styles.shortcutBadgeText, { color: colors.accentFill }]}>빠른 처방</Text>
+            </View>
+          </View>
+          <Text style={[styles.hintText, { color: colors.textMuted }]}>
+            증상을 자유롭게 입력하면 AI가 바로 사암침 처방을 생성합니다.
+          </Text>
+          <TextInput
+            style={[
+              styles.freeTextInput,
+              { backgroundColor: colors.surface0, color: colors.textPrimary, borderColor: colors.border },
+            ]}
+            multiline
+            numberOfLines={4}
+            placeholder={'예) 70대 남성, 양측 고관절 및 둔부 통증이 10개월째 지속되고 보행 시 악화. 우측이 더 심하며 묵직하고 당기는 느낌. 요즈음 4~5병 접점증 기왕력.'}
+            placeholderTextColor={colors.textMuted}
+            value={freeText}
+            onChangeText={setFreeText}
+            textAlignVertical="top"
+          />
+          <Pressable
+            onPress={handleDirectPrescription}
+            disabled={freeText.trim().length === 0 && selectedCC.size === 0}
+            style={({ pressed }) => [
+              styles.directButton,
+              {
+                backgroundColor:
+                  freeText.trim().length === 0 && selectedCC.size === 0
+                    ? colors.textMuted
+                    : pressed
+                    ? colors.accentFill + 'cc'
+                    : colors.accentFill,
+              },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="바로 처방받기"
+          >
+            <Text style={styles.directButtonText}>⚡ 바로 처방받기</Text>
+          </Pressable>
+        </View>
+
         {/* Bottom padding so last section isn't flush against safe area */}
         <View style={styles.bottomPad} />
       </ScrollView>
 
-      {/* Proceed CTA */}
+      {/* Proceed CTA — full interview flow */}
       <View style={[styles.ctaBar, { backgroundColor: colors.surface1, borderTopColor: colors.border }]}>
         <Pressable
           onPress={handleProceed}
-          style={[styles.ctaButton, { backgroundColor: colors.accentFill }]}
+          style={[styles.ctaButton, { backgroundColor: colors.surface2, borderWidth: 1, borderColor: colors.accentFill }]}
           accessibilityRole="button"
           accessibilityLabel="AI 문진 시작"
         >
-          <Text style={[styles.ctaText, { color: colors.accentText }]}>AI 문진 시작 →</Text>
+          <Text style={[styles.ctaText, { color: colors.accentFill }]}>AI 문진 시작 →</Text>
         </Pressable>
       </View>
 
@@ -563,6 +628,40 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   ctaText: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.medium,
+  },
+  // Free-text direct entry
+  shortcutBadge: {
+    paddingHorizontal: spacing[2],
+    paddingVertical: 3,
+    borderRadius: radii.full,
+  },
+  shortcutBadgeText: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.medium,
+  },
+  hintText: {
+    fontSize: typography.fontSize.sm,
+    lineHeight: typography.fontSize.sm * 1.5,
+  },
+  freeTextInput: {
+    borderWidth: 1,
+    borderRadius: radii.md,
+    padding: spacing[3],
+    fontSize: typography.fontSize.sm,
+    minHeight: 100,
+    lineHeight: typography.fontSize.sm * 1.6,
+  },
+  directButton: {
+    borderRadius: radii.md,
+    paddingVertical: spacing[3],
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
+  },
+  directButtonText: {
+    color: '#fff',
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.medium,
   },
