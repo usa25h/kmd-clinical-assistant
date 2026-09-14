@@ -44,7 +44,7 @@ app.add_middleware(
 class PatientInput(BaseModel):
     age: int
     gender: str
-    chief_complaint: str
+    symptom: str
     affected_side: str | None = None
     secondary_symptoms: list[str] = []
     pulse: str | None = None
@@ -59,7 +59,7 @@ def build_user_prompt(p: PatientInput) -> str:
         "",
         "실제 환자 정보:",
         f"- 나이: {p.age}세, 성별: {p.gender}",
-        f"- 주증상: {p.chief_complaint}",
+        f"- 주증상: {p.symptom}",
     ]
     if p.affected_side:
         lines.append(f"- 환측: {p.affected_side}")
