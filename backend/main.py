@@ -74,15 +74,15 @@ Output ALL text fields in English. Apply these field-level rules:
     "zh": """
 ## 语言覆盖指令: Chinese (zh)
 所有文本字段必须使用中文输出。各字段规范如下：
-- diagnosis.pattern: 中文（如 "肾虚证"、"肝实证"）
-- diagnosis.primary_meridian / secondary_meridian: 中文经络名（如 "肾经"、"肝经"）
-- diagnosis.imbalance_type: "虚" 或 "实"
-- prescription.method: "正格" 或 "胜格"
-- points[].point: 穴位汉字名（如 "经渠"、"复溜"、"太溪"、"太白"）
-  - 董氏奇穴使用中文名（如 "灵骨"、"重子"、"中白"）
+- diagnosis.pattern: 中文（如 \"肾虚证\"、\"肝实证\"）
+- diagnosis.primary_meridian / secondary_meridian: 中文经络名（如 \"肾经\"、\"肝经\"）
+- diagnosis.imbalance_type: \"虚\" 或 \"实\"
+- prescription.method: \"正格\" 或 \"胜格\"
+- points[].point: 穴位汉字名（如 \"经渠\"、\"复溜\"、\"太溪\"、\"太白\"）
+  - 董氏奇穴使用中文名（如 \"灵骨\"、\"重子\"、\"中白\"）
 - points[].point_code: WHO标准代码，不变（如 LU8、KD7、SP3）
-- points[].action: "补" 或 "泻"
-- points[].side: "左" 或 "右" 或 "双侧"
+- points[].action: \"补\" 或 \"泻\"
+- points[].side: \"左\" 或 \"右\" 或 \"双侧\"
 - rationale、caution、notes: 中文临床说明（2-3句；引用五行生克原理）
 """,
 }
@@ -99,6 +99,9 @@ _MERIDIAN_HINTS: list[tuple[list[str], str]] = [
     (["기침", "가래", "피부", "코막힘", "콧물"], "폐경(LU) → 폐(肺) 허/실 검토"),
     (["불면", "심계항진", "가슴 두근", "흉통"], "심경(HT) → 심(心) 허/실 검토"),
     (["변비", "손목", "팔꿈치 외측"], "대장경(LI) 주행 → 대장(大腸) 허/실 검토"),
+    (["소변 거품", "단백높", "야뇨", "빈뇨", "소변 이상"], "신기불고(腎気不固) 패턴 → 신(腎) 허증 우선 검토"),
+    (["발바닥 중앙", "족저 중앙", "팅글링", "저림", "작열감"], "KD1(용천) 부위 → 신(腎) 허증 검토"),
+    (["양말 자국", "하지 부종", "발목 부종", "다리 붓기"], "비허 수습운화 실조 → 비(脾) 허증 우선 검토"),
 ]
 
 
@@ -111,40 +114,45 @@ def _get_meridian_hint(symptom: str) -> str | None:
 
 
 def build_user_prompt(p: PatientInput) -> str:
-    lines = [
-        "[USER REQUEST] — 아래 환자 정보에 대해서만 처방을 생성하시오.",
-        "",
-        "실제 환자 정보:",
-        f"- 나이: {p.age}세, 성별: {p.gender}",
-        f"- 주증상: {p.symptom}",
-    ]
-    if p.affected_side:
-        lines.append(f"- 환측: {p.affected_side}")
-    if p.secondary_symptoms:
-        lines.append(f"- 부증상: {', '.join(p.secondary_symptoms)}")
-    if p.pulse:
-        lines.append(f"- 맥상: {p.pulse}")
-    if p.tongue:
-        lines.append(f"- 설진: {p.tongue}")
-    if p.duration:
-        lines.append(f"- 이환기간: {p.duration}")
-    if p.additional_notes:
-        lines.append(f"- 추가 소견: {p.additional_notes}")
+    # 아래 환자 정보 필드 독립적 f-string 명시 바인딩
+    affected_line   = f"\n  affected_side   : {p.affected_side}" if p.affected_side else ""
+    secondary_line  = f"\n  secondary_syms  : {', '.join(p.secondary_symptoms)}" if p.secondary_symptoms else ""
+    pulse_line      = f"\n  pulse           : {p.pulse}" if p.pulse else ""
+    tongue_line     = f"\n  tongue          : {p.tongue}" if p.tongue else ""
+    duration_line   = f"\n  duration        : {p.duration}" if p.duration else ""
+    notes_line      = f"\n  additional_notes: {p.additional_notes}" if p.additional_notes else ""
 
     meridian_hint = _get_meridian_hint(p.symptom)
-    lines += ["", "변증 지시:"]
-    if meridian_hint:
-        lines.append(f"- 경락 힌트: {meridian_hint}")
-    lines += [
-        "- 위 증상을 오행이론과 경락 주행으로 변증하고, 참조표에서 정확한 혈위를 선택하여 JSON만 출력하시오.",
-        "- rationale에 위 환자의 나이, 성별, 주증상을 반드시 직접 언급할 것.",
-        "- 참조표에 없는 혈위 사용 금지.",
-        "- 신허증(腎虛)을 기본값으로 쓰지 말 것. 경락 주행과 허실을 독립적으로 판단하라.",
-    ]
+    hint_line = f"\n  meridian_hint   : {meridian_hint}" if meridian_hint else ""
+
     lang_block = _LANGUAGE_INSTRUCTIONS.get(p.language, "")
-    if lang_block:
-        lines.append(lang_block)
-    return "\n".join(lines)
+    lang_section = f"\n{lang_block}" if lang_block else ""
+
+    prompt = (
+        f"[USER REQUEST]\n"
+        f"\n"
+        f"## 환자 정보 (Patient Data)\n"
+        f"  age             : {p.age}세\n"
+        f"  gender          : {p.gender}\n"
+        f"  chief_complaint : {p.symptom}"
+        f"{affected_line}"
+        f"{secondary_line}"
+        f"{pulse_line}"
+        f"{tongue_line}"
+        f"{duration_line}"
+        f"{notes_line}"
+        f"\n"
+        f"\n## 변증 지시 (Reasoning Instructions)"
+        f"{hint_line}\n"
+        f"  - 위 5단계 임상 추론 프로세스(Step 1~5)를 내부적으로 수행 후 JSON만 출력.\n"
+        f"  - rationale에 {p.age}세 {p.gender} 환자의 주증상 [{p.symptom}]을 직접 언급할 것.\n"
+        f"  - affected_side={p.affected_side or '없음'} → 반대측 취혈 적용.\n"
+        f"  - additional_notes=[{p.additional_notes or '없음'}] → 처방 결정에 반영.\n"
+        f"  - 신허증(腎虛)을 기본값으로 쓰지 말 것. 경락 주행과 허실을 독립 판단.\n"
+        f"  - 참조표에 없는 혈위 절대 사용 금지."
+        f"{lang_section}"
+    )
+    return prompt
 
 
 @app.post("/prescription")
