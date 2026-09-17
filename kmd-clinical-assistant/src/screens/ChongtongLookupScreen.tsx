@@ -1,0 +1,14 @@
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { useTheme } from '../theme';
+
+export function ChongtongLookupScreen() {
+  const colors = useTheme();
+  return (
+    <View style={[styles.center, { backgroundColor: colors.surface0 }]}>
+      <Text style={{ color: colors.textPrimary }}>총통침 참조 — 준비 중</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({ center: { flex: 1, alignItems: 'center', justifyContent: 'center' } });
