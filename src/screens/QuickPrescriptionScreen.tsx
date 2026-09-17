@@ -85,11 +85,9 @@ export function QuickPrescriptionScreen() {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
-        {/* ── Input card ─────────────────────────────────────────────────── */}
         <View style={[styles.inputCard, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
           <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>진단·증상 입력</Text>
 
-          {/* Age + Gender row */}
           <View style={styles.patientRow}>
             <View style={styles.ageWrap}>
               <TextInput
@@ -130,7 +128,6 @@ export function QuickPrescriptionScreen() {
             </View>
           </View>
 
-          {/* Symptom text */}
           <TextInput
             style={[styles.textInput, { color: colors.textPrimary, borderColor: colors.border, backgroundColor: colors.surface0 }]}
             placeholder="예: 구안와사, 두통, 이명"
@@ -144,7 +141,6 @@ export function QuickPrescriptionScreen() {
             accessibilityLabel="증상 입력"
           />
 
-          {/* Quick-select chips */}
           <View style={styles.chipWrap}>
             {QUICK_DIAGNOSES.map((d) => {
               const sel = isChipSelected(d);
@@ -170,7 +166,6 @@ export function QuickPrescriptionScreen() {
             })}
           </View>
 
-          {/* Generate button */}
           <Pressable
             style={[styles.generateBtn, { backgroundColor: canGenerate ? colors.accentFill : colors.surface2 }]}
             onPress={handleGenerate}
@@ -188,14 +183,12 @@ export function QuickPrescriptionScreen() {
           </Pressable>
         </View>
 
-        {/* ── Error ──────────────────────────────────────────────────────── */}
         {!!error && (
           <View style={[styles.errorBox, { backgroundColor: '#FFF1F0', borderColor: '#FFA39E' }]}>
             <Text style={[styles.errorText, { color: '#CF1322' }]}>{error}</Text>
           </View>
         )}
 
-        {/* ── Loading ─────────────────────────────────────────────────────── */}
         {isLoading && (
           <View style={[styles.loadingCard, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
             <ActivityIndicator size="large" color={colors.accentFill} />
@@ -205,14 +198,13 @@ export function QuickPrescriptionScreen() {
           </View>
         )}
 
-        {/* ── Reference shortcuts ───────────────────────────────────────── */}
         <View style={styles.refRow}>
           {(
             [
               { label: '사암침', screen: 'SaamLookup' },
               { label: '동씨침', screen: 'DongsLookup' },
               { label: '총통침', screen: 'ChongtongLookup' },
-              { label: '원문 아카이브', screen: 'DongsArchive' },
+              { label: '월문 아카이브', screen: 'DongsArchive' },
             ] as const
           ).map(({ label, screen }) => (
             <Pressable
@@ -226,7 +218,6 @@ export function QuickPrescriptionScreen() {
           ))}
         </View>
 
-        {/* ── Result ─────────────────────────────────────────────────────── */}
         {result && !isLoading && (
           <PrescriptionResult
             data={result}
@@ -241,8 +232,6 @@ export function QuickPrescriptionScreen() {
     </KeyboardAvoidingView>
   );
 }
-
-// ── Structured prescription result ───────────────────────────────────────────
 
 function SectionHeader({ title, colors }: { title: string; colors: ReturnType<typeof useTheme> }) {
   return (
@@ -301,7 +290,6 @@ function PrescriptionResult({
 
   return (
     <View style={[styles.resultCard, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-      {/* Header */}
       <View style={styles.resultHeader}>
         <Text style={[styles.resultTitle, { color: colors.textPrimary }]}>처방 결과</Text>
         <View style={styles.resultHeaderRight}>
@@ -318,16 +306,13 @@ function PrescriptionResult({
       </View>
       <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
-      {/* Diagnosis */}
       <Text style={[styles.diagnosisText, { color: colors.textPrimary }]}>{data.diagnosis}</Text>
 
-      {/* Primary prescription */}
       <SectionHeader title={`주 처방 — ${data.prescription.method}`} colors={colors} />
       {data.prescription.points.map((p) => (
-        <PointRow key={p.order} point={p} colors={colors} onTapCode={onTapCode} />
+        <PointRow key={`pri-${p.order}`} point={p} colors={colors} onTapCode={onTapCode} />
       ))}
 
-      {/* Secondary treatment */}
       {!!data.secondary_treatment && (
         <>
           <SectionHeader title="보조 처방" colors={colors} />
@@ -335,12 +320,11 @@ function PrescriptionResult({
         </>
       )}
 
-      {/* Tung acupuncture */}
       {data.tung_acupuncture.points.length > 0 && (
         <>
           <SectionHeader title="동씨침" colors={colors} />
           {data.tung_acupuncture.points.map((p) => (
-            <PointRow key={p.order} point={p} colors={colors} onTapCode={onTapCode} />
+            <PointRow key={`tung-${p.order}`} point={p} colors={colors} onTapCode={onTapCode} />
           ))}
           {!!data.tung_acupuncture.notes && (
             <Text style={[styles.notesText, { color: colors.textMuted }]}>{data.tung_acupuncture.notes}</Text>
@@ -348,7 +332,6 @@ function PrescriptionResult({
         </>
       )}
 
-      {/* Rationale */}
       {!!data.rationale && (
         <>
           <SectionHeader title="처방 근거" colors={colors} />
@@ -356,7 +339,6 @@ function PrescriptionResult({
         </>
       )}
 
-      {/* Caution */}
       {!!data.caution && (
         <View style={[styles.cautionBox, { backgroundColor: '#FFF7E6', borderColor: '#FFD591' }]}>
           <Text style={[styles.cautionText, { color: '#874D00' }]}>⚠ {data.caution}</Text>
@@ -365,8 +347,6 @@ function PrescriptionResult({
     </View>
   );
 }
-
-// ── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
