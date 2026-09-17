@@ -5,7 +5,7 @@ export interface WorkerInput {
   gender: string;
   symptom: string;
   affected_side?: string;
-  secondary_symptoms?: string;
+  secondary_symptoms?: string[];
   pulse?: string;
   tongue?: string;
   duration?: string;
@@ -25,19 +25,27 @@ export interface TungPoint extends AcuPoint {
 }
 
 export interface WorkerPrescription {
-  diagnosis: string;
+  diagnosis: {
+    pattern: string;
+    primary_meridian: string;
+    secondary_meridian: string | null;
+    imbalance_type: string;
+  };
   prescription: {
     method: string;
     points: AcuPoint[];
   };
-  secondary_treatment: string;
+  secondary_treatment: {
+    points: AcuPoint[];
+    notes: string | null;
+  };
   tung_acupuncture: {
     points: TungPoint[];
-    notes: string;
+    notes: string | null;
   };
   rationale: string;
-  caution: string;
-  confidence: number;
+  caution: string | null;
+  confidence: 'high' | 'medium' | 'low';
 }
 
 export async function callWorkerApi(input: WorkerInput): Promise<WorkerPrescription> {
