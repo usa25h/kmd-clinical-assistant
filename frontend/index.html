@@ -158,6 +158,37 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .conf-medium{color:#d97706;font-weight:700}
 .conf-low{color:#dc2626;font-weight:700}
 
+/* ── RESULT REDESIGN ── */
+.assess-card .principle-inner{background:rgba(22,101,52,.18);border:1px solid rgba(134,239,172,.4);border-radius:8px;padding:12px 16px;margin-top:14px}
+.principle-inner-label{font-size:10px;font-weight:700;color:#86efac;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.principle-inner-text{font-size:14px;font-weight:600;color:#dcfce7;line-height:1.5}
+.rx-section-header{display:flex;justify-content:space-between;align-items:center;margin:20px 0 10px}
+.rx-section-title{font-size:15px;font-weight:700;color:var(--navy)}
+.rx-section-note{font-size:11px;color:var(--muted)}
+.rx-tung-card{background:#fffbeb;border-color:#f59e0b}
+.rx-saam-card{background:#f8fafc;border-color:var(--border)}
+.rx-jeongyeong-card{background:#f0fdf8;border-color:#6ee7b7}
+.rx-sub-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.rx-type-badge{font-size:11.5px;font-weight:700;padding:4px 12px;border-radius:999px}
+.tung-badge{background:#fef3c7;color:#92400e}
+.saam-badge{background:#dbeafe;color:#1e40af}
+.jeongyeong-badge{background:#d1fae5;color:#065f46}
+.rx-type-sub{font-size:11px;color:var(--muted)}
+.pt-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.pt-chip{display:inline-flex;align-items:center;gap:3px;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--navy)}
+.pt-code{font-size:10px;color:var(--muted);font-weight:400;margin-left:2px}
+.pt-action-bo{background:#dbeafe;color:#1e40af;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:4px}
+.pt-action-sa{background:#fee2e2;color:#dc2626;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:4px}
+.method-chip{display:inline-flex;align-items:center;background:var(--teal-chip);color:var(--teal-chip-t);border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700}
+.rx-card-note{font-size:11.5px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,.06);line-height:1.7}
+.caution-card{border:1.5px solid var(--warn-b);border-radius:12px;padding:16px 20px;margin-bottom:12px;background:var(--warn-bg)}
+.caution-header{font-size:13px;font-weight:700;color:var(--warn-t);margin-bottom:8px}
+.caution-list{padding-left:18px;font-size:13px;line-height:1.9;color:var(--warn-t);margin:0}
+.quick-nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.quick-nav-label{font-size:11.5px;font-weight:700;color:var(--muted)}
+.quick-nav-btn{background:#f1f5f9;border:none;border-radius:6px;padding:4px 10px;font-size:11.5px;color:var(--sub);cursor:pointer;transition:.15s}
+.quick-nav-btn:hover{background:var(--teal-chip);color:var(--teal-chip-t)}
+
 /* ── NAV BUTTONS ── */
 .nav-bar{display:flex;justify-content:space-between;align-items:center;margin-top:24px;gap:12px}
 .btn{padding:11px 22px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:.15s;display:inline-flex;align-items:center;gap:6px}
@@ -218,13 +249,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   <div class="hd-left">
     <div class="hd-logo">🩺</div>
     <div>
-      <div class="hd-brand">KMD Clinical Assistant <span class="hd-ver">v2.0</span></div>
+      <div class="hd-brand">KMD Clinical Assistant <span class="hd-ver">v2.1 Cloudflare</span></div>
       <div class="hd-title">침 처방 Assistant</div>
     </div>
   </div>
   <div class="hd-right">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-    개인식별정보 미저장 (간소 세션)
+    개인식별정보 미저장 (안심 세션)
   </div>
 </header>
 
@@ -590,17 +621,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 
 <!-- ════════════════ STEP 5: 결과 ════════════════ -->
 <section class="step-panel" id="panel5">
-  <div class="section-header">
-    <div class="section-badge">💊 STEP 5. 침 처방 결과</div>
-    <div class="section-title">사암침 + 동씨침 처방</div>
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-top:6px">
-      <div class="section-sub">임상 변증 분석 · 달리보험 침구 처방 기반</div>
-      <button class="btn btn-sm btn-ghost" onclick="resetForm()">↺ 새한 진료 시작</button>
-    </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+    <div class="quick-nav" id="summaryBreadcrumb"></div>
+    <button class="btn btn-sm btn-ghost" onclick="resetForm()">↺ 새 환자 진료 시작</button>
   </div>
-
-  <!-- Breadcrumb -->
-  <div id="summaryBreadcrumb" style="font-size:12px;color:var(--muted);margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap"></div>
 
   <div id="resultArea">
     <div class="empty-state">
@@ -618,7 +642,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 </main>
 
 <script>
-const API_URL = 'http://localhost:8080';
+const API_URL = 'https://kmd-clinical-assistant.38card.workers.dev';
 let currentStep = 1;
 const selectedZones = new Set();
 const selectedCats = new Set();
@@ -781,14 +805,13 @@ function collectPayload() {
 
 /* ── BREADCRUMB ── */
 function renderBreadcrumb(p) {
-  const items = [
-    `${p.age}세 ${p.gender}`,
-    p.symptom,
-    p.affected_side ? p.affected_side : null,
-    p.duration ? p.duration : null
-  ].filter(Boolean);
-  document.getElementById('summaryBreadcrumb').innerHTML =
-    items.map(i=>`<span style="background:#e2e8f0;border-radius:999px;padding:2px 10px">${i}</span>`).join('');
+  document.getElementById('summaryBreadcrumb').innerHTML = `
+    <span class="quick-nav-label">빠른 수정:</span>
+    <button class="quick-nav-btn" onclick="goStep(1)">기본정보</button>
+    <button class="quick-nav-btn" onclick="goStep(2)">신체 탭(3-View)</button>
+    <button class="quick-nav-btn" onclick="goStep(3)">문진</button>
+    <button class="quick-nav-btn" onclick="goStep(4)">설·맥진</button>
+  `;
 }
 
 /* ── SUBMIT ── */
@@ -816,7 +839,7 @@ async function submitPrescription() {
     document.getElementById('resultArea').innerHTML = `
       <div class="caution-card">
         <div class="card-label">⚠️ 오류</div>
-        <div class="caution-text">${e.message}<br><br>백엔드 서버(http://localhost:8080)가 실행 중인지 확인하세요.</div>
+        <div class="caution-text">${e.message}<br><br>Cloudflare Worker (https://kmd-clinical-assistant.38card.workers.dev) 배포 상태를 확인하세요.</div>
       </div>`;
   } finally {
     document.getElementById('spinnerOverlay').classList.remove('show');
@@ -828,112 +851,97 @@ function renderResult(data) {
   const diag = data.diagnosis || {};
   const presc = data.prescription || {};
   const sec = data.secondary_treatment || {};
+  const tung = data.tung_acupuncture || {};
   const rationale = data.rationale || '';
   const caution = data.caution || null;
   const confidence = data.confidence || 'medium';
+  const treatmentPrinciple = data.treatment_principle || '';
 
-  const imbalance = diag.imbalance_type || '';
-  const isHeo = imbalance.includes('허');
-  const tagClass = isHeo ? 'heo' : 'sil';
+  function ptChip(pt, showAction=true) {
+    const code = pt.point_code ? `<span class="pt-code">${pt.point_code}</span>` : '';
+    let badge = '';
+    if (showAction && pt.action) {
+      badge = pt.action === '보'
+        ? `<span class="pt-action-bo">보</span>`
+        : `<span class="pt-action-sa">사</span>`;
+    }
+    return `<span class="pt-chip">${pt.point||''}${code}${badge}</span>`;
+  }
 
-  // Assessment card
+  // ── Assessment card (dark) ──
   let html = `
   <div class="assess-card">
     <div class="assess-label">🔬 임상 변증 분석 (Assessment) · 달리보험 침구 처방 기반</div>
     <div class="assess-pattern">${diag.pattern || '-'}</div>
-    <div class="assess-sub">${diag.primary_meridian || ''}${diag.secondary_meridian ? ' · ' + diag.secondary_meridian : ''}</div>
-    <div class="assess-tags">
-      <span class="atag ${tagClass}">${imbalance}</span>
-      <span class="atag">${presc.method || ''}</span>
-      ${diag.primary_meridian ? `<span class="atag">${diag.primary_meridian}</span>` : ''}
-    </div>
+    <div class="assess-sub">${rationale ? rationale.split(/[.。]/).filter(s=>s.trim())[0] : (diag.primary_meridian||'')}</div>
+    ${treatmentPrinciple ? `
+    <div class="principle-inner">
+      <div class="principle-inner-label">치료 원칙 (TREATMENT PRINCIPLE)</div>
+      <div class="principle-inner-text">${treatmentPrinciple}</div>
+    </div>` : ''}
   </div>`;
 
-  // Principle
-  if (rationale) {
-    const principle = rationale.split('。')[0] || rationale.substring(0,60);
-    html += `
-  <div class="principle-card">
-    <div class="principle-label">치료 방침 (Treatment Principle)</div>
-    <div class="principle-text">${principle}</div>
+  // ── Prescription section header ──
+  html += `
+  <div class="rx-section-header">
+    <span class="rx-section-title">추천 침구 처방 (Acupuncture Formulas)</span>
+    <span class="rx-section-note">혈위를 클릭하면 위치를 확인할 수 있습니다</span>
   </div>`;
-  }
 
-  // Prescription points
-  const points = (presc.points || []).sort((a,b)=>(a.order||0)-(b.order||0));
-  if (points.length) {
-    let rows = points.map(pt => {
-      const isBO = pt.action === '보';
-      const actionHtml = isBO
-        ? `<span class="action-bo">보 (補)</span>`
-        : `<span class="action-sa">사 (瀉)</span>`;
-      const side = pt.side ? `<span class="side-badge">${pt.side}측</span>` : '';
-      return `<tr>
-        <td><span class="order-dot">${pt.order||''}</span></td>
-        <td><strong>${pt.point||''}</strong></td>
-        <td style="color:var(--muted)">${pt.point_code||''}</td>
-        <td>${side}</td>
-        <td>${actionHtml}</td>
-      </tr>`;
-    }).join('');
-
-    html += `
-  <div class="rx-card">
-    <div class="rx-header">
-      <span class="rx-method">사암침 · ${presc.method||''}</span>
-      <span class="rx-meridian">${diag.primary_meridian||''} 기준</span>
-    </div>
-    <table class="point-table">
-      <thead><tr>
-        <th>순서</th><th>혈위명</th><th>경혈 코드</th><th>환측</th><th>수기법</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
-
-    if (sec.notes) {
-      html += `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)">💡 ${sec.notes}</div>`;
-    }
-    html += `</div>`;
-  }
-
-  // Tung's Acupuncture
-  const tung = data.tung_acupuncture || {};
+  // ── 동씨침법 ──
   const tungPoints = (tung.points || []).sort((a,b)=>(a.order||0)-(b.order||0));
   if (tungPoints.length) {
-    let tungRows = tungPoints.map(pt => {
-      const isBO = pt.action === '보' || pt.action === 'Tonify' || pt.action === '补';
-      const actionHtml = isBO
-        ? `<span class="action-bo">보 (補)</span>`
-        : `<span class="action-sa">사 (瀉)</span>`;
-      const side = pt.side ? `<span class="side-badge">${pt.side}</span>` : '';
-      const indication = pt.indication ? `<div class="tung-indication">${pt.indication}</div>` : '';
-      return `<tr>
-        <td><span class="order-dot" style="background:#92400e">${pt.order||''}</span></td>
-        <td><strong>${pt.point||''}</strong>${indication}</td>
-        <td style="color:var(--muted)">${pt.point_code||''}</td>
-        <td>${side}</td>
-        <td>${actionHtml}</td>
-      </tr>`;
+    const chips = tungPoints.map(pt => {
+      const code = pt.point_code ? `<span class="pt-code">${pt.point_code}</span>` : '';
+      const badge = pt.action === '보'
+        ? `<span class="pt-action-bo">보</span>`
+        : `<span class="pt-action-sa">사</span>`;
+      const ind = pt.indication ? `<div style="font-size:10px;color:#a16207;font-style:italic;margin-top:2px">${pt.indication}</div>` : '';
+      return `<div class="pt-chip" style="flex-direction:column;align-items:flex-start;gap:2px"><div style="display:flex;align-items:center;gap:3px">${pt.point||''}${code}${badge}</div>${ind}</div>`;
     }).join('');
-
     html += `
-  <div class="tung-card">
-    <div class="tung-header">
-      <span class="tung-badge">동씨침 (董氏針) 특효혈</span>
+  <div class="rx-card rx-tung-card">
+    <div class="rx-sub-header">
+      <span class="rx-type-badge tung-badge">동씨침법(董氏針法)</span>
+      <span class="rx-type-sub">도기침법(동씨針法) 병용</span>
     </div>
-    <table class="point-table">
-      <thead><tr>
-        <th>순서</th><th>혈위명 / 적응증</th><th>동씨 코드</th><th>환측</th><th>수기법</th>
-      </tr></thead>
-      <tbody>${tungRows}</tbody>
-    </table>`;
-    if (tung.notes) {
-      html += `<div style="margin-top:12px;padding-top:12px;border-top:1px solid #fcd34d;font-size:12px;color:#92400e">💡 ${tung.notes}</div>`;
-    }
-    html += `</div>`;
+    <div class="pt-chips">${chips}</div>
+    ${tung.notes ? `<div class="rx-card-note">💡 ${tung.notes}</div>` : ''}
+  </div>`;
   }
 
-  // Rationale
+  // ── 사암오행침법 ──
+  const saamPoints = (presc.points || []).sort((a,b)=>(a.order||0)-(b.order||0));
+  if (presc.method || saamPoints.length) {
+    const methodChip = presc.method ? `<span class="method-chip">사암 ${presc.method}</span>` : '';
+    const chips = saamPoints.map(pt => ptChip(pt)).join('');
+    html += `
+  <div class="rx-card rx-saam-card">
+    <div class="rx-sub-header">
+      <span class="rx-type-badge saam-badge">사암오행침법(舍岩五行針)</span>
+      <span class="rx-type-sub">양보 보사(補瀉) 적용 · ${diag.primary_meridian||''} 기준</span>
+    </div>
+    <div class="pt-chips" style="gap:8px 6px">${methodChip}${chips}</div>
+    <div class="rx-card-note">💡 ${diag.primary_meridian||''} 오수혈 배열 — 반드시 반대측(건측) 취혈 적용.</div>
+  </div>`;
+  }
+
+  // ── 정경 상용 혈 ──
+  const secPoints = (sec.points || []).sort((a,b)=>(a.order||0)-(b.order||0));
+  if (secPoints.length) {
+    const chips = secPoints.map(pt => ptChip(pt, false)).join('');
+    html += `
+  <div class="rx-card rx-jeongyeong-card">
+    <div class="rx-sub-header">
+      <span class="rx-type-badge jeongyeong-badge">정경 상용 혈(14혈위)</span>
+      <span class="rx-type-sub">사중용·활혈혈 배합</span>
+    </div>
+    <div class="pt-chips">${chips}</div>
+    ${sec.notes ? `<div class="rx-card-note">💡 ${sec.notes}</div>` : ''}
+  </div>`;
+  }
+
+  // ── 처방 근거 ──
   if (rationale) {
     html += `
   <div class="rationale-card">
@@ -942,16 +950,20 @@ function renderResult(data) {
   </div>`;
   }
 
-  // Caution
+  // ── 임상 가이드 및 금기 ──
   if (caution) {
+    const lines = caution.split(/(?<=[.。])\s*/).filter(l=>l.trim().length > 2);
+    const listHtml = lines.length > 1
+      ? `<ul class="caution-list">${lines.map(l=>`<li>${l.trim()}</li>`).join('')}</ul>`
+      : `<div class="caution-text">${caution}</div>`;
     html += `
   <div class="caution-card">
-    <div class="card-label" style="color:var(--warn-t)">⚠️ 임상 가이드 및 금기 (Precautions)</div>
-    <div class="caution-text">${caution}</div>
+    <div class="caution-header">⚠️ 임상 가이드 및 금기 (PRECAUTIONS)</div>
+    ${listHtml}
   </div>`;
   }
 
-  // Confidence
+  // ── 신뢰도 ──
   const confMap = {high:'conf-high',medium:'conf-medium',low:'conf-low'};
   const confLabel = {high:'높음 ✓',medium:'보통',low:'낮음 △'};
   html += `<div class="confidence-row">처방 신뢰도: <span class="${confMap[confidence]||'conf-medium'}">${confLabel[confidence]||confidence}</span></div>`;

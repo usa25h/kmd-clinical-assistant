@@ -121,6 +121,7 @@ rationale 마지막 문장에 반드시 다음 형식으로 감별 포인트 1�
     "secondary_meridian": "보조 경락명 또는 null",
     "imbalance_type": "허(虛) 또는 실(實)"
   },
+  "treatment_principle": "치료 원칙 한자 병기 2-4 키워드 (예: 거풍산한(祛風散寒)·활혈통락(活血通絡)·진통소서(鎭痛消舒))",
   "prescription": {
     "method": "정격 또는 승격",
     "points": [
@@ -134,8 +135,15 @@ rationale 마지막 문장에 반드시 다음 형식으로 감별 포인트 1�
     ]
   },
   "secondary_treatment": {
-    "points": [],
-    "notes": "보조 처방 설명 또는 null"
+    "points": [
+      {
+        "point": "정경 상용 혈위명 (예: 합곡)",
+        "point_code": "WHO 코드 (예: LI4)",
+        "side": "양측",
+        "order": 1
+      }
+    ],
+    "notes": "정경 상용 혈 선택 근거 또는 null"
   },
   "tung_acupuncture": {
     "points": [
@@ -167,7 +175,9 @@ rationale 마지막 문장에 반드시 다음 형식으로 감별 포인트 1�
 8. 환측 반대측 취혈: affected_side가 좌측이면 side는 우측, 우측이면 좌측, 없음/양측이면 양측.
 9. 장부 진단 다양성 보장: 증상-경락 감별진단 가이드를 먼저 검토하여 증상에 맞는 최적 장부를 선택. 신(腎)을 반사적으로 선택하지 말 것.
 10. 동씨침(董氏針) 특효혈 병용 필수: tung_acupuncture.points 배열에 반드시 1개 이상 포함. 동씨침 참조표에서 주증상에 맞는 특효혈 선택. 빈 배열 반환 절대 금지.
-11. 동씨침 코드는 동씨침 번호 체계(예: 88.17, 22.05, PC8)로 표기. 사암침 WHO 코드와 혼용 금지.`;
+11. 동씨침 코드는 동씨침 번호 체계(예: 88.17, 22.05, PC8)로 표기. 사암침 WHO 코드와 혼용 금지.
+12. treatment_principle: 치료 원칙을 한자 병기 포함 2-4개 키워드로 표현 (예: 거풍산한(祛風散寒)·활혈통락(活血通絡)·진통소서(鎭痛消舒)). 반드시 포함.
+13. secondary_treatment.points: 정경(14경락) 상용 혈 2-4개 포함. 주증상에 맞는 WHO 코드 기준 혈위 (합곡LI4, 태충LR3, 양릉천GB34, 족삼리ST36, 삼음교SP6, 혈해SP10, 태계KD3 등). 빈 배열 지양.`;
 
 // Meridian hints (mirrors Python _MERIDIAN_HINTS)
 const MERIDIAN_HINTS: [string[], string][] = [
