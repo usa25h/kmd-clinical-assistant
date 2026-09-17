@@ -343,6 +343,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <div class="card-label">💬 증상 직접 서술 (선택 단계 건너뛰기 가능)</div>
     <textarea id="chiefComplaint" placeholder="예: 70대 남성, 양측 고관절 및 둔부 통증이 10개월째 지속되고 보행 시 악화. 우측이 더 심하며 목욕하고 닦기가 달기는 느낌. 요즘 4-5발 협착증 기왕력."></textarea>
     <div class="note">원하는 증상을 직접 입력하면 이후 단계를 건너뛰고 바로 처방을 생성할 수 있습니다.</div>
+    <div id="instantPrescribeWrap" style="display:none;margin-top:12px">
+      <button class="btn btn-primary btn-full" onclick="submitPrescription()" style="background:#0d1f2d;font-size:15px;padding:14px">⚡ 즉석 처방 생성 (단계 건너뛰기) →</button>
+    </div>
   </div>
 
   <div class="nav-bar">
@@ -387,59 +390,172 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     </div>
     <div class="body-wrap">
       <div class="body-svg-wrap">
-        <svg viewBox="0 0 200 440" xmlns="http://www.w3.org/2000/svg" id="bodySvg">
-          <!-- Head -->
-          <ellipse class="zone" cx="100" cy="38" rx="28" ry="32" data-zone="두부" onclick="toggleZone(this)"/>
-          <text class="zone-label" x="100" y="41">두부</text>
-          <!-- Neck -->
-          <rect class="zone" x="88" y="70" width="24" height="18" rx="4" data-zone="경부/항부" onclick="toggleZone(this)"/>
-          <text class="zone-label" x="100" y="82">경부</text>
-          <!-- Chest -->
-          <rect class="zone" x="62" y="88" width="76" height="62" rx="6" data-zone="흉부" onclick="toggleZone(this)"/>
-          <text class="zone-label" x="100" y="122">흉부</text>
-          <!-- Abdomen -->
-          <rect class="zone" x="64" y="150" width="72" height="50" rx="6" data-zone="복부" onclick="toggleZone(this)"/>
-          <text class="zone-label" x="100" y="178">복부</text>
-          <!-- Waist -->
-          <rect class="zone" x="68" y="200" width="64" height="38" rx="6" data-zone="허리/요부" onclick="toggleZone(this)"/>
-          <text class="zone-label" x="100" y="222">허리</text>
-          <!-- Left Upper Arm -->
-          <rect class="zone" x="24" y="90" width="34" height="62" rx="10" data-zone="좌 상완" onclick="toggleZone(this)"/>
-          <text class="zone-label" x="41" y="124">좌완</text>
-          <!-- Right Upper Arm -->
-          <rect class="zone" x="142" y="90" width="34" height="62" rx="10" data-zone="우 상완" onclick="toggleZone(this)"/>
-          <text class="zone-label" x="159" y="124">우완</text>
-          <!-- Left Lower Arm -->
-          <rect class="zone" x="16" y="158" width="28" height="56" rx="8" data-zone="좌 전완" onclick="toggleZone(this)"/>
-          <text class="zone-label" x="30" y="189">전완</text>
-          <!-- Right Lower Arm -->
-          <rect class="zone" x="156" y="158" width="28" height="56" rx="8" data-zone="우 전완" onclick="toggleZone(this)"/>
-          <text class="zone-label" x="170" y="189">전완</text>
-          <!-- Left Hand -->
-          <ellipse class="zone" cx="28" cy="234" rx="14" ry="16" data-zone="좌 수부" onclick="toggleZone(this)"/>
-          <text class="zone-label" x="28" y="238">수</text>
-          <!-- Right Hand -->
-          <ellipse class="zone" cx="172" cy="234" rx="14" ry="16" data-zone="우 수부" onclick="toggleZone(this)"/>
-          <text class="zone-label" x="172" y="238">수</text>
-          <!-- Left Thigh -->
-          <rect class="zone" x="70" y="240" width="28" height="70" rx="8" data-zone="좌 대퇴" onclick="toggleZone(this)"/>
-          <text class="zone-label" x="84" y="278">좌퇴</text>
-          <!-- Right Thigh -->
-          <rect class="zone" x="102" y="240" width="28" height="70" rx="8" data-zone="우 대퇴" onclick="toggleZone(this)"/>
-          <text class="zone-label" x="116" y="278">우퇴</text>
-          <!-- Left Shin -->
-          <rect class="zone" x="72" y="316" width="24" height="68" rx="8" data-zone="좌 하퇴" onclick="toggleZone(this)"/>
-          <text class="zone-label" x="84" y="353">좌경</text>
-          <!-- Right Shin -->
-          <rect class="zone" x="104" y="316" width="24" height="68" rx="8" data-zone="우 하퇴" onclick="toggleZone(this)"/>
-          <text class="zone-label" x="116" y="353">우경</text>
-          <!-- Left Foot -->
-          <ellipse class="zone" cx="84" cy="406" rx="20" ry="14" data-zone="족부/수족지" onclick="toggleZone(this)"/>
-          <text class="zone-label" x="84" y="410">족</text>
-          <!-- Right Foot -->
-          <ellipse class="zone" cx="116" cy="406" rx="20" ry="14" data-zone="족부/수족지" onclick="toggleZone(this)"/>
-          <text class="zone-label" x="116" y="410">족</text>
+
+        <!-- ▶ 앞면 (정면) -->
+        <svg class="body-svg-panel" id="bodySvg_front" viewBox="0 0 200 462" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;height:auto">
+          <!-- body zones first -->
+          <ellipse class="zone" cx="100" cy="40" rx="32" ry="36" data-zone="두부" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="100" y="66" style="font-size:8px">두부</text>
+          <rect class="zone" x="88" y="78" width="24" height="18" rx="4" data-zone="경부/항부" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="100" y="90">경부</text>
+          <rect class="zone" x="60" y="96" width="80" height="62" rx="6" data-zone="흉부" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="100" y="130">흉부</text>
+          <rect class="zone" x="62" y="158" width="76" height="50" rx="6" data-zone="복부" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="100" y="186">복부</text>
+          <rect class="zone" x="66" y="208" width="68" height="38" rx="6" data-zone="허리/요부" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="100" y="230">허리</text>
+          <rect class="zone" x="18" y="98" width="36" height="64" rx="10" data-zone="좌 상완" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="36" y="133">좌완</text>
+          <rect class="zone" x="146" y="98" width="36" height="64" rx="10" data-zone="우 상완" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="164" y="133">우완</text>
+          <rect class="zone" x="10" y="172" width="28" height="54" rx="8" data-zone="좌 전완" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="24" y="202">전완</text>
+          <rect class="zone" x="162" y="172" width="28" height="54" rx="8" data-zone="우 전완" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="176" y="202">전완</text>
+          <rect class="zone" x="68" y="250" width="30" height="72" rx="8" data-zone="좌 대퇴" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="83" y="288">좌퇴</text>
+          <rect class="zone" x="102" y="250" width="30" height="72" rx="8" data-zone="우 대퇴" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="117" y="288">우퇴</text>
+          <rect class="zone" x="70" y="334" width="26" height="58" rx="8" data-zone="좌 하퇴" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="83" y="365">좌경</text>
+          <rect class="zone" x="104" y="334" width="26" height="58" rx="8" data-zone="우 하퇴" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="117" y="365">우경</text>
+          <!-- joint zones (on top of body zones) -->
+          <ellipse class="zone" cx="19" cy="98" rx="14" ry="12" data-zone="좌 어깨관절" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="19" y="102" style="font-size:6.5px">어깨</text>
+          <ellipse class="zone" cx="181" cy="98" rx="14" ry="12" data-zone="우 어깨관절" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="181" y="102" style="font-size:6.5px">어깨</text>
+          <ellipse class="zone" cx="19" cy="164" rx="12" ry="11" data-zone="좌 팔꿈치관절" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="19" y="168" style="font-size:6px">팔꿈</text>
+          <ellipse class="zone" cx="181" cy="164" rx="12" ry="11" data-zone="우 팔꿈치관절" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="181" y="168" style="font-size:6px">팔꿈</text>
+          <ellipse class="zone" cx="19" cy="226" rx="10" ry="8" data-zone="좌 손목관절" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="19" y="229" style="font-size:5.5px">손목</text>
+          <ellipse class="zone" cx="181" cy="226" rx="10" ry="8" data-zone="우 손목관절" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="181" y="229" style="font-size:5.5px">손목</text>
+          <ellipse class="zone" cx="19" cy="241" rx="12" ry="8" data-zone="좌 손등" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="19" y="244" style="font-size:6px">손등</text>
+          <ellipse class="zone" cx="19" cy="258" rx="12" ry="9" data-zone="좌 손바닥" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="19" y="262" style="font-size:5.5px">손바닥</text>
+          <ellipse class="zone" cx="181" cy="241" rx="12" ry="8" data-zone="우 손등" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="181" y="244" style="font-size:6px">손등</text>
+          <ellipse class="zone" cx="181" cy="258" rx="12" ry="9" data-zone="우 손바닥" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="181" y="262" style="font-size:5.5px">손바닥</text>
+          <ellipse class="zone" cx="72" cy="250" rx="14" ry="11" data-zone="좌 고관절" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="72" y="254" style="font-size:6px">고관절</text>
+          <ellipse class="zone" cx="128" cy="250" rx="14" ry="11" data-zone="우 고관절" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="128" y="254" style="font-size:6px">고관절</text>
+          <ellipse class="zone" cx="83" cy="325" rx="15" ry="12" data-zone="좌 무릎관절" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="83" y="329" style="font-size:6.5px">무릎</text>
+          <ellipse class="zone" cx="117" cy="325" rx="15" ry="12" data-zone="우 무릎관절" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="117" y="329" style="font-size:6.5px">무릎</text>
+          <ellipse class="zone" cx="83" cy="393" rx="13" ry="9" data-zone="좌 발목관절" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="83" y="397" style="font-size:6px">발목</text>
+          <ellipse class="zone" cx="117" cy="393" rx="13" ry="9" data-zone="우 발목관절" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="117" y="397" style="font-size:6px">발목</text>
+          <ellipse class="zone" cx="80" cy="410" rx="16" ry="10" data-zone="좌 발등" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="80" y="413" style="font-size:6.5px">발등</text>
+          <ellipse class="zone" cx="80" cy="430" rx="16" ry="10" data-zone="좌 발바닥" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="80" y="434" style="font-size:5.5px">발바닥</text>
+          <ellipse class="zone" cx="120" cy="410" rx="16" ry="10" data-zone="우 발등" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="120" y="413" style="font-size:6.5px">발등</text>
+          <ellipse class="zone" cx="120" cy="430" rx="16" ry="10" data-zone="우 발바닥" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="120" y="434" style="font-size:5.5px">발바닥</text>
+          <!-- face sub-zones (last = highest z-order, captures clicks inside head) -->
+          <ellipse class="zone" cx="65" cy="38" rx="9" ry="12" data-zone="좌 귀" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="65" y="42" style="font-size:7px">귀</text>
+          <ellipse class="zone" cx="135" cy="38" rx="9" ry="12" data-zone="우 귀" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="135" y="42" style="font-size:7px">귀</text>
+          <ellipse class="zone" cx="90" cy="30" rx="8" ry="5" data-zone="좌 눈" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="90" y="33" style="font-size:6px">눈</text>
+          <ellipse class="zone" cx="110" cy="30" rx="8" ry="5" data-zone="우 눈" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="110" y="33" style="font-size:6px">눈</text>
+          <ellipse class="zone" cx="100" cy="42" rx="6" ry="8" data-zone="코" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="100" y="46" style="font-size:6px">코</text>
+          <rect class="zone" x="90" y="53" width="20" height="9" rx="4" data-zone="입" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="100" y="60" style="font-size:6px">입</text>
         </svg>
+
+        <!-- ▶ 뒷면 (후면) -->
+        <svg class="body-svg-panel" id="bodySvg_back" viewBox="0 0 200 462" xmlns="http://www.w3.org/2000/svg" style="display:none;width:100%;height:auto">
+          <ellipse class="zone" cx="100" cy="40" rx="32" ry="36" data-zone="후두부" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="100" y="43">후두부</text>
+          <rect class="zone" x="88" y="78" width="24" height="18" rx="4" data-zone="항부(목뒤)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="100" y="90">항부</text>
+          <rect class="zone" x="92" y="96" width="16" height="122" rx="4" data-zone="척추" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="100" y="160">척추</text>
+          <rect class="zone" x="44" y="98" width="46" height="50" rx="6" data-zone="좌 견갑" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="67" y="126">좌견갑</text>
+          <rect class="zone" x="110" y="98" width="46" height="50" rx="6" data-zone="우 견갑" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="133" y="126">우견갑</text>
+          <rect class="zone" x="14" y="98" width="30" height="64" rx="8" data-zone="좌 상완(후)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="29" y="133">좌완</text>
+          <rect class="zone" x="156" y="98" width="30" height="64" rx="8" data-zone="우 상완(후)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="171" y="133">우완</text>
+          <rect class="zone" x="8" y="172" width="26" height="54" rx="7" data-zone="좌 전완(후)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="21" y="202">전완</text>
+          <rect class="zone" x="166" y="172" width="26" height="54" rx="7" data-zone="우 전완(후)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="179" y="202">전완</text>
+          <rect class="zone" x="60" y="220" width="46" height="50" rx="10" data-zone="좌 둔부" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="83" y="248">좌둔부</text>
+          <rect class="zone" x="94" y="220" width="46" height="50" rx="10" data-zone="우 둔부" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="117" y="248">우둔부</text>
+          <rect class="zone" x="64" y="270" width="30" height="62" rx="8" data-zone="좌 대퇴(후)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="79" y="304">대퇴후</text>
+          <rect class="zone" x="106" y="270" width="30" height="62" rx="8" data-zone="우 대퇴(후)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="121" y="304">대퇴후</text>
+          <ellipse class="zone" cx="79" cy="334" rx="16" ry="11" data-zone="좌 슬와(오금)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="79" y="338" style="font-size:7px">슬와</text>
+          <ellipse class="zone" cx="121" cy="334" rx="16" ry="11" data-zone="우 슬와(오금)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="121" y="338" style="font-size:7px">슬와</text>
+          <rect class="zone" x="66" y="346" width="26" height="50" rx="8" data-zone="좌 비복근" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="79" y="374">비복</text>
+          <rect class="zone" x="108" y="346" width="26" height="50" rx="8" data-zone="우 비복근" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="121" y="374">비복</text>
+          <rect class="zone" x="68" y="396" width="22" height="16" rx="4" data-zone="좌 아킬레스건" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="79" y="407" style="font-size:5.5px">아킬레스</text>
+          <rect class="zone" x="110" y="396" width="22" height="16" rx="4" data-zone="우 아킬레스건" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="121" y="407" style="font-size:5.5px">아킬레스</text>
+          <ellipse class="zone" cx="79" cy="424" rx="18" ry="12" data-zone="좌 발바닥(후)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="79" y="427" style="font-size:6.5px">발바닥</text>
+          <ellipse class="zone" cx="121" cy="424" rx="18" ry="12" data-zone="우 발바닥(후)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="121" y="427" style="font-size:6.5px">발바닥</text>
+          <ellipse class="zone" cx="79" cy="445" rx="14" ry="9" data-zone="좌 발뒤꿈치" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="79" y="448" style="font-size:6px">뒤꿈치</text>
+          <ellipse class="zone" cx="121" cy="445" rx="14" ry="9" data-zone="우 발뒤꿈치" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="121" y="448" style="font-size:6px">뒤꿈치</text>
+        </svg>
+
+        <!-- ▶ 옆면 (측면) -->
+        <svg class="body-svg-panel" id="bodySvg_side" viewBox="0 0 200 462" xmlns="http://www.w3.org/2000/svg" style="display:none;width:100%;height:auto">
+          <ellipse class="zone" cx="105" cy="40" rx="32" ry="36" data-zone="측두부" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="105" y="43">측두부</text>
+          <rect class="zone" x="88" y="78" width="32" height="20" rx="4" data-zone="경측부(목옆)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="104" y="91">경측</text>
+          <ellipse class="zone" cx="156" cy="98" rx="28" ry="22" data-zone="어깨(측면)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="156" y="101">견측면</text>
+          <rect class="zone" x="74" y="98" width="74" height="62" rx="6" data-zone="흉협(옆가슴)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="111" y="132">흉협</text>
+          <rect class="zone" x="150" y="120" width="30" height="54" rx="8" data-zone="상완(측면)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="165" y="149">상완</text>
+          <rect class="zone" x="76" y="160" width="62" height="48" rx="6" data-zone="복측부(옆배)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="107" y="187">복측</text>
+          <rect class="zone" x="150" y="174" width="28" height="50" rx="7" data-zone="전완(측면)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="164" y="201">전완</text>
+          <ellipse class="zone" cx="100" cy="228" rx="40" ry="26" data-zone="고관절(측면)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="100" y="231">고관절측</text>
+          <rect class="zone" x="76" y="254" width="42" height="68" rx="8" data-zone="대퇴(측면)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="97" y="290">대퇴측</text>
+          <ellipse class="zone" cx="95" cy="324" rx="22" ry="16" data-zone="슬관절(측면)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="95" y="327" style="font-size:7px">슬관절측</text>
+          <rect class="zone" x="76" y="340" width="36" height="54" rx="8" data-zone="하퇴(측면)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="94" y="369">하퇴측</text>
+          <ellipse class="zone" cx="94" cy="396" rx="22" ry="13" data-zone="발목(측면)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="94" y="399" style="font-size:6.5px">발목측면</text>
+          <ellipse class="zone" cx="112" cy="424" rx="40" ry="14" data-zone="족(측면)" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="112" y="427" style="font-size:7px">족측면</text>
+        </svg>
+
       </div>
       <div class="selected-list" style="padding-top:8px">
         <div class="selected-title">선택된 통증 부위 (<span id="zoneCount">0</span>개)</div>
@@ -734,9 +850,12 @@ function removeZone(zone) {
   document.querySelectorAll(`.cat-chip[data-cat="${zone}"]`).forEach(el=>el.classList.remove('active'));
   renderSelectedZones();
 }
-function setBvTab(btn, _view) {
+function setBvTab(btn, view) {
   document.querySelectorAll('.bv-tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  document.querySelectorAll('.body-svg-panel').forEach(el=>el.style.display='none');
+  const panel = document.getElementById('bodySvg_'+view);
+  if(panel) panel.style.display='block';
 }
 
 /* ── SLIDERS ── */
@@ -971,11 +1090,17 @@ function renderResult(data) {
   document.getElementById('resultArea').innerHTML = html;
 }
 
+/* ── INSTANT PRESCRIBE SHOW/HIDE ── */
+document.getElementById('chiefComplaint').addEventListener('input', function() {
+  document.getElementById('instantPrescribeWrap').style.display = this.value.trim() ? 'block' : 'none';
+});
+
 /* ── RESET ── */
 function resetForm() {
   document.getElementById('chiefComplaint').value='';
   document.getElementById('additionalNotes').value='';
   document.getElementById('age').value=65;
+  document.getElementById('instantPrescribeWrap').style.display='none';
   selectedZones.clear(); selectedCats.clear();
   document.querySelectorAll('.zone.selected').forEach(el=>el.classList.remove('selected'));
   document.querySelectorAll('.cat-chip.active').forEach(el=>el.classList.remove('active'));
@@ -988,6 +1113,9 @@ function resetForm() {
   document.getElementById('pulseRate').value=5;
   updateSlider(document.getElementById('pulseDepth'),'pulseDepthVal');
   updateSlider(document.getElementById('pulseRate'),'pulseRateVal');
+  document.querySelectorAll('.body-svg-panel').forEach(el=>el.style.display='none');
+  document.getElementById('bodySvg_front').style.display='block';
+  document.querySelectorAll('.bv-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
   renderSelectedZones();
   goStep(1);
 }
