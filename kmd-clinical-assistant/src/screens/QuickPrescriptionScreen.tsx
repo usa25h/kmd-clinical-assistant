@@ -13,7 +13,14 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme, typography, spacing, radii } from '../theme';
-import { callWorkerApi, type WorkerPrescription, type AcuPoint, type TungPoint } from '../lib/workerApi';
+import {
+  callWorkerApi,
+  type WorkerPrescription,
+  type AcuPoint,
+  type TungPoint,
+  type PrescriptionSection,
+  type TungSection,
+} from '../lib/workerApi';
 import type { RootStackParamList } from '../navigation/types';
 
 const QUICK_DIAGNOSES = [
@@ -85,6 +92,7 @@ export function QuickPrescriptionScreen() {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
+        {/* ── Input card ── */}
         <View style={[styles.inputCard, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
           <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>진단·증상 입력</Text>
 
@@ -109,13 +117,10 @@ export function QuickPrescriptionScreen() {
                   <Pressable
                     key={g}
                     onPress={() => setGender(g)}
-                    style={[
-                      styles.genderChip,
-                      {
-                        backgroundColor: sel ? colors.accentFill : colors.surface0,
-                        borderColor: sel ? colors.accentFill : colors.border,
-                      },
-                    ]}
+                    style={[styles.genderChip, {
+                      backgroundColor: sel ? colors.accentFill : colors.surface0,
+                      borderColor: sel ? colors.accentFill : colors.border,
+                    }]}
                     accessibilityRole="radio"
                     accessibilityState={{ selected: sel }}
                   >
@@ -148,13 +153,10 @@ export function QuickPrescriptionScreen() {
                 <Pressable
                   key={d}
                   onPress={() => toggleChip(d)}
-                  style={[
-                    styles.quickChip,
-                    {
-                      backgroundColor: sel ? colors.accentFill : colors.surface2,
-                      borderColor: sel ? colors.accentFill : colors.border,
-                    },
-                  ]}
+                  style={[styles.quickChip, {
+                    backgroundColor: sel ? colors.accentFill : colors.surface2,
+                    borderColor: sel ? colors.accentFill : colors.border,
+                  }]}
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: sel }}
                 >
@@ -193,11 +195,12 @@ export function QuickPrescriptionScreen() {
           <View style={[styles.loadingCard, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
             <ActivityIndicator size="large" color={colors.accentFill} />
             <Text style={[styles.loadingText, { color: colors.textMuted }]}>
-              사암침·동씨침·총통침 처방 분석 중…
+              사암침·동씨침·정경 처방 분석 중…
             </Text>
           </View>
         )}
 
+        {/* ── Reference shortcuts ── */}
         <View style={styles.refRow}>
           {(
             [
@@ -233,6 +236,8 @@ export function QuickPrescriptionScreen() {
   );
 }
 
+// ── Sub-components ────────────────────────────────────────────────────────────
+
 function SectionHeader({ title, colors }: { title: string; colors: ReturnType<typeof useTheme> }) {
   return (
     <View style={[styles.sectionHeader, { backgroundColor: colors.accentSubtle }]}>
@@ -245,10 +250,12 @@ function PointRow({
   point,
   colors,
   onTapCode,
+  showIndication,
 }: {
   point: AcuPoint | TungPoint;
   colors: ReturnType<typeof useTheme>;
   onTapCode: (code: string) => void;
+  showIndication?: boolean;
 }) {
   return (
     <View style={styles.pointRow}>
@@ -265,13 +272,45 @@ function PointRow({
           <Text style={[styles.pointName, { color: colors.textPrimary }]}>{point.point}</Text>
           <Text style={[styles.pointMeta, { color: colors.textMuted }]}>{point.side} · {point.action}</Text>
         </View>
-        {'indication' in point && (point as TungPoint).indication ? (
+        {showIndication && 'indication' in point && (point as TungPoint).indication ? (
           <Text style={[styles.pointIndication, { color: colors.textSecondary }]}>
             {(point as TungPoint).indication}
           </Text>
         ) : null}
       </View>
     </View>
+  );
+}
+
+function PrescriptionBlock({
+  section,
+  label,
+  colors,
+  onTapCode,
+  showIndication,
+}: {
+  section: PrescriptionSection | TungSection;
+  label: string;
+  colors: ReturnType<typeof useTheme>;
+  onTapCode: (code: string) => void;
+  showIndication?: boolean;
+}) {
+  return (
+    <>
+      <SectionHeader title={`${label} — ${section.formula_name}`} colors={colors} />
+      {section.points.map((p) => (
+        <PointRow
+          key={`${label}-${p.order}`}
+          point={p}
+          colors={colors}
+          onTapCode={onTapCode}
+          showIndication={showIndication}
+        />
+      ))}
+      {!!section.notes && (
+        <Text style={[styles.notesText, { color: colors.textMuted }]}>{section.notes}</Text>
+      )}
+    </>
   );
 }
 
@@ -286,12 +325,14 @@ function PrescriptionResult({
   onTapCode: (code: string) => void;
   onClear: () => void;
 }) {
-  const confidenceLabel = data.confidence === 'high' ? '고신뢰' : data.confidence === 'medium' ? '중신뢰' : '저신뢰';
+  const confidenceLabel =
+    data.confidence === 'high' ? '고신뢰' : data.confidence === 'medium' ? '중신뢰' : '저신뢰';
 
   return (
     <View style={[styles.resultCard, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
+      {/* Header */}
       <View style={styles.resultHeader}>
-        <Text style={[styles.resultTitle, { color: colors.textPrimary }]}>처방 결과</Text>
+        <Text style={[styles.resultTitle, { color: colors.textPrimary }]}>침구 처방 결과</Text>
         <View style={styles.resultHeaderRight}>
           <Text style={[styles.confidenceBadge, { color: colors.textMuted }]}>{confidenceLabel}</Text>
           <Pressable
@@ -306,58 +347,58 @@ function PrescriptionResult({
       </View>
       <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
-      <Text style={[styles.diagnosisText, { color: colors.textPrimary }]}>
-        {data.diagnosis.pattern}
+      {/* Assessment */}
+      <Text style={[styles.patternText, { color: colors.textPrimary }]}>
+        {data.assessment.pattern}
       </Text>
-      <Text style={[styles.bodyText, { color: colors.textMuted }]}>
-        {data.diagnosis.primary_meridian}
-        {data.diagnosis.secondary_meridian ? ` · ${data.diagnosis.secondary_meridian}` : ''} · {data.diagnosis.imbalance_type}
+      <Text style={[styles.descriptionText, { color: colors.textSecondary }]}>
+        {data.assessment.description}
       </Text>
 
-      <SectionHeader title={`주 처방 — ${data.prescription.method}`} colors={colors} />
-      {data.prescription.points.map((p) => (
-        <PointRow key={`pri-${p.order}`} point={p} colors={colors} onTapCode={onTapCode} />
-      ))}
+      {/* Treatment principle */}
+      <View style={[styles.principleRow, { backgroundColor: colors.accentSubtle, borderColor: colors.accentFill }]}>
+        <Text style={[styles.principleLabel, { color: colors.accentFill }]}>치료 원칙</Text>
+        <Text style={[styles.principleText, { color: colors.textPrimary }]}>{data.treatment_principle}</Text>
+      </View>
 
-      {(data.secondary_treatment.points.length > 0 || data.secondary_treatment.notes) && (
-        <>
-          <SectionHeader title="보조 처방" colors={colors} />
-          {data.secondary_treatment.points.map((p) => (
-            <PointRow key={`sec-${p.order}`} point={p} colors={colors} onTapCode={onTapCode} />
-          ))}
-          {!!data.secondary_treatment.notes && (
-            <Text style={[styles.bodyText, { color: colors.textSecondary }]}>{data.secondary_treatment.notes}</Text>
-          )}
-        </>
-      )}
+      {/* Tung acupuncture */}
+      <PrescriptionBlock
+        section={data.tung_acupuncture}
+        label="동씨침"
+        colors={colors}
+        onTapCode={onTapCode}
+        showIndication
+      />
 
-      {data.tung_acupuncture.points.length > 0 && (
-        <>
-          <SectionHeader title="동씨침" colors={colors} />
-          {data.tung_acupuncture.points.map((p) => (
-            <PointRow key={`tung-${p.order}`} point={p} colors={colors} onTapCode={onTapCode} />
-          ))}
-          {!!data.tung_acupuncture.notes && (
-            <Text style={[styles.notesText, { color: colors.textMuted }]}>{data.tung_acupuncture.notes}</Text>
-          )}
-        </>
-      )}
+      {/* Saam */}
+      <PrescriptionBlock
+        section={data.saam}
+        label="사암오행침"
+        colors={colors}
+        onTapCode={onTapCode}
+      />
 
-      {!!data.rationale && (
-        <>
-          <SectionHeader title="처방 근거" colors={colors} />
-          <Text style={[styles.bodyText, { color: colors.textSecondary }]}>{data.rationale}</Text>
-        </>
-      )}
+      {/* Meridian */}
+      <PrescriptionBlock
+        section={data.meridian}
+        label="정경"
+        colors={colors}
+        onTapCode={onTapCode}
+      />
 
-      {!!data.caution && (
+      {/* Precautions */}
+      {data.precautions.length > 0 && (
         <View style={[styles.cautionBox, { backgroundColor: '#FFF7E6', borderColor: '#FFD591' }]}>
-          <Text style={[styles.cautionText, { color: '#874D00' }]}>⚠ {data.caution}</Text>
+          {data.precautions.map((p, i) => (
+            <Text key={i} style={[styles.cautionText, { color: '#874D00' }]}>⚠ {p}</Text>
+          ))}
         </View>
       )}
     </View>
   );
 }
+
+// ── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
@@ -418,7 +459,12 @@ const styles = StyleSheet.create({
   clearBtnText: { fontSize: typography.fontSize.sm },
   divider: { height: 1 },
 
-  diagnosisText: { fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.medium, lineHeight: typography.fontSize.base * 1.6 },
+  patternText: { fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.medium, lineHeight: typography.fontSize.lg * 1.4 },
+  descriptionText: { fontSize: typography.fontSize.sm, lineHeight: typography.fontSize.sm * 1.7 },
+
+  principleRow: { borderRadius: radii.md, borderWidth: 1, borderLeftWidth: 3, padding: spacing[3], gap: spacing[1] },
+  principleLabel: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium },
+  principleText: { fontSize: typography.fontSize.sm, lineHeight: typography.fontSize.sm * 1.6 },
 
   sectionHeader: { paddingHorizontal: spacing[2], paddingVertical: spacing[1], borderRadius: radii.sm, marginTop: spacing[1] },
   sectionHeaderText: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium },
@@ -431,10 +477,8 @@ const styles = StyleSheet.create({
   pointName: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium },
   pointMeta: { fontSize: typography.fontSize.xs },
   pointIndication: { fontSize: typography.fontSize.xs, lineHeight: typography.fontSize.xs * 1.5 },
-
-  bodyText: { fontSize: typography.fontSize.sm, lineHeight: typography.fontSize.sm * 1.7 },
   notesText: { fontSize: typography.fontSize.xs, lineHeight: typography.fontSize.xs * 1.6, fontStyle: 'italic' },
 
-  cautionBox: { borderRadius: radii.md, borderWidth: 1, padding: spacing[3] },
+  cautionBox: { borderRadius: radii.md, borderWidth: 1, padding: spacing[3], gap: spacing[2] },
   cautionText: { fontSize: typography.fontSize.sm, lineHeight: typography.fontSize.sm * 1.5 },
 });
