@@ -10,6 +10,11 @@ import {
   SOAPNoteScreen,
   DailyTipScreen,
   AcupointDetailScreen,
+  QuickPrescriptionScreen,
+  SaamLookupScreen,
+  DongsLookupScreen,
+  ChongtongLookupScreen,
+  DongsArchiveScreen,
 } from '../screens';
 import type { RootStackParamList } from './types';
 
@@ -21,7 +26,7 @@ export function RootNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="ChiefComplaint"
+        initialRouteName="QuickPrescription"
         screenOptions={{
           headerStyle: { backgroundColor: colors.surface1 },
           headerTintColor: colors.textPrimary,
@@ -67,6 +72,31 @@ export function RootNavigator() {
           name="AcupointDetail"
           component={AcupointDetailScreen}
           options={({ route }) => ({ title: `${route.params.code} 자침 요령` })}
+        />
+        <Stack.Screen
+          name="QuickPrescription"
+          component={QuickPrescriptionScreen}
+          options={{ title: '빠른 처방' }}
+        />
+        <Stack.Screen
+          name="SaamLookup"
+          component={SaamLookupScreen}
+          options={{ title: '사암침 참조' }}
+        />
+        <Stack.Screen
+          name="DongsLookup"
+          component={DongsLookupScreen}
+          options={{ title: '동씨침 참조' }}
+        />
+        <Stack.Screen
+          name="ChongtongLookup"
+          component={ChongtongLookupScreen}
+          options={{ title: '총통침 참조' }}
+        />
+        <Stack.Screen
+          name="DongsArchive"
+          component={DongsArchiveScreen}
+          options={{ title: '원문 아카이브' }}
         />
       </Stack.Navigator>
     </NavigationContainer>
