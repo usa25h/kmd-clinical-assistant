@@ -346,7 +346,11 @@ export default {
       }
 
       try {
-        const prescription = JSON.parse(text);
+        // Strip markdown code fences Gemini sometimes wraps around JSON
+        let cleaned = text.trim();
+        const fenceMatch = cleaned.match(/^```(?:json)?\s*([\s\S]*?)```\s*$/i);
+        if (fenceMatch) cleaned = fenceMatch[1].trim();
+        const prescription = JSON.parse(cleaned);
         return Response.json(prescription, { headers: CORS_HEADERS });
       } catch (e) {
         return Response.json(
