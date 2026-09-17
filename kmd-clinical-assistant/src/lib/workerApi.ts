@@ -24,27 +24,28 @@ export interface TungPoint extends AcuPoint {
   indication: string;
 }
 
+export interface PrescriptionSection {
+  formula_name: string;
+  points: AcuPoint[];
+  notes: string | null;
+}
+
+export interface TungSection {
+  formula_name: string;
+  points: TungPoint[];
+  notes: string | null;
+}
+
 export interface WorkerPrescription {
-  diagnosis: {
+  assessment: {
     pattern: string;
-    primary_meridian: string;
-    secondary_meridian: string | null;
-    imbalance_type: string;
+    description: string;
   };
-  prescription: {
-    method: string;
-    points: AcuPoint[];
-  };
-  secondary_treatment: {
-    points: AcuPoint[];
-    notes: string | null;
-  };
-  tung_acupuncture: {
-    points: TungPoint[];
-    notes: string | null;
-  };
-  rationale: string;
-  caution: string | null;
+  treatment_principle: string;
+  tung_acupuncture: TungSection;
+  saam: PrescriptionSection;
+  meridian: PrescriptionSection;
+  precautions: string[];
   confidence: 'high' | 'medium' | 'low';
 }
 
