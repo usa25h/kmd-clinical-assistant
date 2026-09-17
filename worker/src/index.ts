@@ -4,6 +4,1004 @@ const CORS_HEADERS: HeadersInit = {
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
+
+const HTML_PAGE = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KMD 침 처방 Assistant</title>
+<style>
+:root {
+  --primary:#1b4c3e; --primary-h:#16402f; --navy:#0d1f2d; --navy-h:#162738;
+  --teal-chip:#e6f0ed; --teal-chip-t:#1b4c3e;
+  --bg:#edf1f5; --card:#fff; --border:#dde3ea;
+  --text:#1a202c; --muted:#718096; --sub:#4a5568;
+  --active-step:#0d1f2d; --done-step:#2d4a6a;
+  --chip:#edf2f7; --chip-a:#1b4c3e; --chip-at:#fff;
+  --bo:#2563eb; --bo-bg:#dbeafe;
+  --sa:#dc2626; --sa-bg:#fee2e2;
+  --warn-bg:#fffbeb; --warn-b:#fcd34d; --warn-t:#92400e;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+
+/* ── HEADER ── */
+header{background:var(--navy);color:#fff;padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.hd-left{display:flex;align-items:center;gap:12px}
+.hd-logo{width:32px;height:32px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.hd-brand{font-size:11px;letter-spacing:.12em;color:#94a3b8;text-transform:uppercase}
+.hd-title{font-size:15px;font-weight:700;color:#fff;margin-top:1px}
+.hd-ver{background:rgba(255,255,255,.12);border-radius:4px;padding:2px 8px;font-size:10px;color:#94a3b8;margin-left:8px}
+.hd-right{font-size:11px;color:#64748b;display:flex;align-items:center;gap:6px}
+.hd-right svg{opacity:.6}
+
+/* ── STEP NAV ── */
+.step-nav{background:#fff;border-bottom:1px solid var(--border);display:flex;padding:0 20px;overflow-x:auto}
+.step-nav::-webkit-scrollbar{display:none}
+.step-btn{flex:none;padding:14px 20px;font-size:12.5px;font-weight:600;color:#94a3b8;border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;transition:.15s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.step-btn.done{color:var(--done-step)}
+.step-btn.active{color:var(--active-step);border-bottom-color:var(--primary)}
+.step-btn .snum{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;background:#e2e8f0;color:#718096}
+.step-btn.active .snum{background:var(--primary);color:#fff}
+.step-btn.done .snum{background:var(--done-step);color:#fff}
+
+/* ── MAIN ── */
+main{max-width:860px;margin:0 auto;padding:24px 16px 80px}
+.step-panel{display:none}
+.step-panel.active{display:block}
+
+/* ── SECTION CARD ── */
+.section-header{margin-bottom:20px}
+.section-badge{font-size:11px;font-weight:700;color:var(--primary);letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.section-title{font-size:20px;font-weight:700;color:var(--navy)}
+.section-sub{font-size:12px;color:var(--muted);margin-top:4px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:16px}
+.card-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+
+/* ── INPUTS ── */
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:12px;font-weight:600;color:var(--sub)}
+input[type=number],input[type=text],textarea,select{
+  border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;
+  font-size:13px;color:var(--text);background:#fff;width:100%;outline:none;
+  font-family:inherit;transition:.15s
+}
+input:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(27,76,62,.1)}
+textarea{resize:vertical;min-height:90px}
+.bmi-display{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 14px;font-size:12px;color:#166534;display:flex;align-items:center;gap:8px;margin-top:8px}
+.bmi-status{padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700}
+.bmi-status.normal{background:#dcfce7;color:#166534}
+.bmi-status.over{background:#fee2e2;color:#991b1b}
+.bmi-status.under{background:#fef9c3;color:#854d0e}
+
+/* ── TOGGLE BUTTONS ── */
+.toggle-group{display:flex;gap:8px;flex-wrap:wrap}
+.toggle-btn{padding:8px 18px;border:1.5px solid var(--border);border-radius:8px;background:#fff;font-size:13px;font-weight:500;color:var(--sub);cursor:pointer;transition:.15s}
+.toggle-btn:hover{border-color:var(--primary);color:var(--primary)}
+.toggle-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:600}
+
+/* ── CHIPS ── */
+.chip-group{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:6px 14px;border:1.5px solid var(--border);border-radius:999px;background:#fff;font-size:12.5px;color:var(--sub);cursor:pointer;transition:.15s;user-select:none}
+.chip:hover{border-color:var(--primary);color:var(--primary)}
+.chip.active{background:var(--chip-a);border-color:var(--chip-a);color:var(--chip-at);font-weight:600}
+.chip.checked::before{content:"✓ ";font-size:11px}
+
+/* ── BODY DIAGRAM ── */
+.body-view-tabs{display:flex;gap:2px;margin-bottom:16px}
+.bv-tab{padding:7px 20px;border:1.5px solid var(--border);border-radius:8px 8px 0 0;background:#f8fafc;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s}
+.bv-tab.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.body-wrap{display:flex;gap:20px;align-items:flex-start}
+.body-svg-wrap{flex:none;width:200px}
+.body-svg-wrap svg{width:100%;height:auto}
+.zone{fill:#d4e8e2;stroke:#9fc5bb;stroke-width:1.5;cursor:pointer;transition:.15s;rx:6}
+.zone:hover{fill:#a8d4c8}
+.zone.selected{fill:var(--primary);stroke:var(--primary-h)}
+.zone-label{font-size:9px;fill:#2d6a55;text-anchor:middle;pointer-events:none;font-weight:600}
+.zone.selected + .zone-label,.zone.selected ~ text{fill:#fff}
+.selected-list{flex:1}
+.selected-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;margin-bottom:8px}
+.selected-tag{display:inline-flex;align-items:center;gap:6px;background:var(--teal-chip);color:var(--teal-chip-t);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:600;margin:4px 4px 0 0}
+.selected-tag button{background:none;border:none;cursor:pointer;color:var(--primary);font-size:14px;line-height:1;padding:0}
+.no-select{color:var(--muted);font-size:12px;font-style:italic}
+
+/* ── CAT GRID ── */
+.cat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:16px}
+.cat-chip{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:8px 4px;text-align:center;cursor:pointer;transition:.15s}
+.cat-chip:hover{border-color:var(--primary);background:#f0fdf8}
+.cat-chip.active{border-color:var(--primary);background:var(--teal-chip)}
+.cat-kanji{font-size:18px;font-weight:700;color:var(--navy);display:block}
+.cat-ko{font-size:10px;color:var(--muted);margin-top:2px;display:block}
+
+/* ── SLIDER ── */
+.slider-wrap{margin-bottom:20px}
+.slider-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px}
+input[type=range]{width:100%;-webkit-appearance:none;height:6px;border-radius:3px;background:linear-gradient(to right,var(--primary) 50%,#e2e8f0 50%);outline:none;border:none;padding:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--primary);cursor:pointer;border:3px solid #fff;box-shadow:0 0 0 2px var(--primary)}
+.slider-val{text-align:center;font-size:12px;color:var(--primary);font-weight:700;margin-top:4px}
+
+/* ── TONGUE GRID ── */
+.tongue-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tongue-card{border:1.5px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:.15s;background:#fff}
+.tongue-card:hover{border-color:var(--primary);background:#f0fdf8}
+.tongue-card.active{border-color:var(--primary);background:var(--teal-chip)}
+.tongue-card.active::before{content:"✓";float:right;color:var(--primary);font-weight:700}
+.tongue-name{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.tongue-desc{font-size:11px;color:var(--muted);line-height:1.4}
+
+/* ── RESULTS ── */
+.assess-card{background:linear-gradient(135deg,#0d1f2d 0%,#1b3a4b 100%);border-radius:14px;padding:24px 28px;margin-bottom:16px;color:#fff}
+.assess-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#64b5f6;margin-bottom:8px;font-weight:700}
+.assess-pattern{font-size:26px;font-weight:800;letter-spacing:-.02em;margin-bottom:6px}
+.assess-sub{font-size:13px;color:#94a3b8;margin-bottom:14px}
+.assess-tags{display:flex;gap:8px;flex-wrap:wrap}
+.atag{padding:5px 14px;border-radius:999px;font-size:12px;font-weight:600;border:1.5px solid rgba(255,255,255,.25);color:#e2e8f0}
+.atag.heo{background:rgba(59,130,246,.2);border-color:rgba(59,130,246,.4);color:#93c5fd}
+.atag.sil{background:rgba(239,68,68,.2);border-color:rgba(239,68,68,.4);color:#fca5a5}
+.principle-card{background:#f0fdf8;border:1.5px solid #86efac;border-radius:12px;padding:16px 20px;margin-bottom:16px}
+.principle-label{font-size:10px;font-weight:700;color:#166534;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.principle-text{font-size:14px;font-weight:600;color:#14532d}
+.rx-card{border:1.5px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:12px;background:#fff}
+.rx-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.rx-method{font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px;background:var(--teal-chip);color:var(--teal-chip-t)}
+.rx-meridian{font-size:12px;color:var(--muted)}
+.point-table{width:100%;border-collapse:collapse}
+.point-table th{font-size:10px;color:var(--muted);font-weight:600;text-align:left;padding:4px 8px;border-bottom:1px solid var(--border);letter-spacing:.06em;text-transform:uppercase}
+.point-table td{padding:8px 8px;border-bottom:1px solid #f8fafc;font-size:13px;vertical-align:middle}
+.point-table tr:last-child td{border-bottom:none}
+.order-dot{width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.action-bo{background:var(--bo-bg);color:var(--bo);padding:3px 10px;border-radius:6px;font-size:12px;font-weight:700}
+.action-sa{background:var(--sa-bg);color:var(--sa);padding:3px 10px;border-radius:6px;font-size:12px;font-weight:700}
+.side-badge{background:#f1f5f9;color:#475569;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600}
+.rationale-card{border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:12px;background:#fafbfc}
+.rationale-text{font-size:13.5px;line-height:1.8;color:var(--sub)}
+.caution-card{border:1.5px solid var(--warn-b);border-radius:12px;padding:16px 20px;margin-bottom:12px;background:var(--warn-bg)}
+.caution-text{font-size:13px;line-height:1.7;color:var(--warn-t)}
+.confidence-row{text-align:right;font-size:12px;color:var(--muted);margin-top:4px}
+.conf-high{color:#16a34a;font-weight:700}
+.conf-medium{color:#d97706;font-weight:700}
+.conf-low{color:#dc2626;font-weight:700}
+
+/* ── RESULT REDESIGN ── */
+.assess-card .principle-inner{background:rgba(22,101,52,.18);border:1px solid rgba(134,239,172,.4);border-radius:8px;padding:12px 16px;margin-top:14px}
+.principle-inner-label{font-size:10px;font-weight:700;color:#86efac;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.principle-inner-text{font-size:14px;font-weight:600;color:#dcfce7;line-height:1.5}
+.rx-section-header{display:flex;justify-content:space-between;align-items:center;margin:20px 0 10px}
+.rx-section-title{font-size:15px;font-weight:700;color:var(--navy)}
+.rx-section-note{font-size:11px;color:var(--muted)}
+.rx-tung-card{background:#fffbeb;border-color:#f59e0b}
+.rx-saam-card{background:#f8fafc;border-color:var(--border)}
+.rx-jeongyeong-card{background:#f0fdf8;border-color:#6ee7b7}
+.rx-sub-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.rx-type-badge{font-size:11.5px;font-weight:700;padding:4px 12px;border-radius:999px}
+.tung-badge{background:#fef3c7;color:#92400e}
+.saam-badge{background:#dbeafe;color:#1e40af}
+.jeongyeong-badge{background:#d1fae5;color:#065f46}
+.rx-type-sub{font-size:11px;color:var(--muted)}
+.pt-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.pt-chip{display:inline-flex;align-items:center;gap:3px;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--navy)}
+.pt-code{font-size:10px;color:var(--muted);font-weight:400;margin-left:2px}
+.pt-action-bo{background:#dbeafe;color:#1e40af;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:4px}
+.pt-action-sa{background:#fee2e2;color:#dc2626;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:4px}
+.method-chip{display:inline-flex;align-items:center;background:var(--teal-chip);color:var(--teal-chip-t);border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700}
+.rx-card-note{font-size:11.5px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,.06);line-height:1.7}
+.caution-card{border:1.5px solid var(--warn-b);border-radius:12px;padding:16px 20px;margin-bottom:12px;background:var(--warn-bg)}
+.caution-header{font-size:13px;font-weight:700;color:var(--warn-t);margin-bottom:8px}
+.caution-list{padding-left:18px;font-size:13px;line-height:1.9;color:var(--warn-t);margin:0}
+.quick-nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.quick-nav-label{font-size:11.5px;font-weight:700;color:var(--muted)}
+.quick-nav-btn{background:#f1f5f9;border:none;border-radius:6px;padding:4px 10px;font-size:11.5px;color:var(--sub);cursor:pointer;transition:.15s}
+.quick-nav-btn:hover{background:var(--teal-chip);color:var(--teal-chip-t)}
+
+/* ── NAV BUTTONS ── */
+.nav-bar{display:flex;justify-content:space-between;align-items:center;margin-top:24px;gap:12px}
+.btn{padding:11px 22px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-h)}
+.btn-ghost{background:#fff;color:var(--sub);border:1.5px solid var(--border)}
+.btn-ghost:hover{border-color:var(--primary);color:var(--primary)}
+.btn-full{width:100%}
+.btn-sm{padding:8px 16px;font-size:12px}
+.btn-danger{background:#dc2626;color:#fff}
+
+/* ── SPINNER ── */
+.spinner-overlay{display:none;position:fixed;inset:0;background:rgba(13,31,45,.55);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+.spinner-overlay.show{display:flex}
+.spinner{width:44px;height:44px;border:4px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+.spinner-text{color:#fff;font-size:14px;font-weight:600}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── EMPTY STATE ── */
+.empty-state{border:2px dashed #cbd5e0;border-radius:14px;padding:60px 20px;text-align:center;color:var(--muted)}
+.empty-icon{font-size:52px;margin-bottom:12px}
+.empty-text{font-size:14px;font-weight:500}
+
+/* ── TUNG ACUPUNCTURE ── */
+.tung-card{border:1.5px solid #f59e0b;border-radius:12px;padding:18px 20px;margin-bottom:12px;background:#fffbeb}
+.tung-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.tung-badge{font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px;background:#fef3c7;color:#92400e}
+.tung-indication{font-size:11px;color:#78716c;font-style:italic;margin-top:2px}
+
+/* ── MISC ── */
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+.text-right{text-align:right}
+.mt4{margin-top:4px}
+.mt8{margin-top:8px}
+.mt12{margin-top:12px}
+.note{font-size:11px;color:var(--muted);margin-top:6px}
+
+@media(max-width:600px){
+  .row2,.row3{grid-template-columns:1fr}
+  .cat-grid{grid-template-columns:repeat(4,1fr)}
+  .tongue-grid{grid-template-columns:1fr 1fr}
+  .body-wrap{flex-direction:column}
+  .body-svg-wrap{width:160px;margin:0 auto}
+  .assess-pattern{font-size:20px}
+}
+</style>
+</head>
+<body>
+
+<!-- SPINNER -->
+<div class="spinner-overlay" id="spinnerOverlay">
+  <div class="spinner"></div>
+  <div class="spinner-text">사암침 + 동씨침 처방 생성 중...</div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="hd-left">
+    <div class="hd-logo">🩺</div>
+    <div>
+      <div class="hd-brand">KMD Clinical Assistant <span class="hd-ver">v2.1 Cloudflare</span></div>
+      <div class="hd-title">침 처방 Assistant</div>
+    </div>
+  </div>
+  <div class="hd-right">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    개인식별정보 미저장 (안심 세션)
+  </div>
+</header>
+
+<!-- STEP NAV -->
+<nav class="step-nav">
+  <button class="step-btn active" data-step="1" onclick="goStep(1)">
+    <span class="snum">1</span> 기본정보
+  </button>
+  <button class="step-btn" data-step="2" onclick="goStep(2)">
+    <span class="snum">2</span> 신체 탭 (3-View)
+  </button>
+  <button class="step-btn" data-step="3" onclick="goStep(3)">
+    <span class="snum">3</span> 문진
+  </button>
+  <button class="step-btn" data-step="4" onclick="goStep(4)">
+    <span class="snum">4</span> 설-맥진
+  </button>
+  <button class="step-btn" data-step="5" onclick="goStep(5)">
+    <span class="snum">5</span> 침 처방 결과
+  </button>
+</nav>
+
+<main>
+
+<!-- ════════════════ STEP 1: 기본정보 ════════════════ -->
+<section class="step-panel active" id="panel1">
+  <div class="section-header">
+    <div class="section-badge">⚕ STEP 1. 환자 기초 계측</div>
+    <div class="section-title">기본 정보를 입력해 주세요</div>
+    <div class="section-sub">※ 환자의 이름, 전화번호, 주민번호 등 개인식별정보는 절대 입력하지 않습니다.</div>
+  </div>
+
+  <div class="card">
+    <div class="row2">
+      <div class="field">
+        <label>연령 (Age)</label>
+        <input type="number" id="age" min="1" max="120" value="65" placeholder="예: 65">
+      </div>
+      <div class="field">
+        <label>성별 (Gender)</label>
+        <div class="toggle-group mt4" id="genderGroup">
+          <button class="toggle-btn active" data-val="남성" onclick="setToggle('genderGroup',this,'남성')">남성</button>
+          <button class="toggle-btn" data-val="여성" onclick="setToggle('genderGroup',this,'여성')">여성</button>
+          <button class="toggle-btn" data-val="미지정" onclick="setToggle('genderGroup',this,'미지정')">미지정</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">📏 신장 및 체중 (Height &amp; Weight)</div>
+    <div class="row3">
+      <div class="field">
+        <label>키 (ft)</label>
+        <input type="number" id="ht-ft" min="1" max="8" value="5" oninput="calcBMI()">
+      </div>
+      <div class="field">
+        <label>추가 (inch)</label>
+        <input type="number" id="ht-in" min="0" max="11" value="8" oninput="calcBMI()">
+      </div>
+      <div class="field">
+        <label>체중 (lb)</label>
+        <input type="number" id="wt-lb" min="10" max="600" value="160" oninput="calcBMI()">
+      </div>
+    </div>
+    <div class="bmi-display" id="bmiDisplay">
+      <span>📊</span>
+      <span id="bmiText">신장: 173cm / 72.6kg &nbsp;·&nbsp; BMI 지수: 24.3 kg/m²</span>
+      <span class="bmi-status normal" id="bmiStatus">정상</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">🔖 체질 판별 (참고용)</div>
+    <div class="chip-group" id="constitutionGroup">
+      <span class="chip" onclick="toggleChipSingle('constitutionGroup',this)">미론병 (소음/음체)</span>
+      <span class="chip active" onclick="toggleChipSingle('constitutionGroup',this)">보통 (평체)</span>
+      <span class="chip" onclick="toggleChipSingle('constitutionGroup',this)">비번형 (태음/습담)</span>
+      <span class="chip" onclick="toggleChipSingle('constitutionGroup',this)">근육형 (양명/실증)</span>
+      <span class="chip" onclick="toggleChipSingle('constitutionGroup',this)">부종형 (수술정체)</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">💬 증상 직접 서술 (선택 단계 건너뛰기 가능)</div>
+    <textarea id="chiefComplaint" placeholder="예: 70대 남성, 양측 고관절 및 둔부 통증이 10개월째 지속되고 보행 시 악화. 우측이 더 심하며 목욕하고 닦기가 달기는 느낌. 요즘 4-5발 협착증 기왕력."></textarea>
+    <div class="note">원하는 증상을 직접 입력하면 이후 단계를 건너뛰고 바로 처방을 생성할 수 있습니다.</div>
+  </div>
+
+  <div class="nav-bar">
+    <div></div>
+    <button class="btn btn-primary" onclick="goStep(2)">
+      다음: 신체 탭 (3-View) 통증 부위 선택 →
+    </button>
+  </div>
+</section>
+
+<!-- ════════════════ STEP 2: 신체 탭 ════════════════ -->
+<section class="step-panel" id="panel2">
+  <div class="section-header">
+    <div class="section-badge">🫀 STEP 2. 신체 탭 (3-View)</div>
+    <div class="section-title">통증 부위를 선택해 주세요</div>
+    <div class="section-sub">부위를 분류 탭에서 선택하거나 신체도를 직접 클릭하세요.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">부위 분류 (12大門)</div>
+    <div class="cat-grid" id="catGrid">
+      <div class="cat-chip" data-cat="두부" onclick="toggleCat(this)"><span class="cat-kanji">首</span><span class="cat-ko">두부</span></div>
+      <div class="cat-chip" data-cat="경부/항부" onclick="toggleCat(this)"><span class="cat-kanji">頸</span><span class="cat-ko">경부/항부</span></div>
+      <div class="cat-chip" data-cat="흉부" onclick="toggleCat(this)"><span class="cat-kanji">胸</span><span class="cat-ko">흉부</span></div>
+      <div class="cat-chip" data-cat="복부" onclick="toggleCat(this)"><span class="cat-kanji">腹</span><span class="cat-ko">복부</span></div>
+      <div class="cat-chip" data-cat="허리/요부" onclick="toggleCat(this)"><span class="cat-kanji">腰</span><span class="cat-ko">허리/요부</span></div>
+      <div class="cat-chip" data-cat="족부/수족지" onclick="toggleCat(this)"><span class="cat-kanji">足</span><span class="cat-ko">족부/수족지</span></div>
+      <div class="cat-chip" data-cat="안면/이비인후" onclick="toggleCat(this)"><span class="cat-kanji">面</span><span class="cat-ko">안면/이비인후</span></div>
+      <div class="cat-chip" data-cat="피부근골" onclick="toggleCat(this)"><span class="cat-kanji">筋</span><span class="cat-ko">피부근골</span></div>
+      <div class="cat-chip" data-cat="비뇨생식" onclick="toggleCat(this)"><span class="cat-kanji">陰</span><span class="cat-ko">비뇨생식</span></div>
+      <div class="cat-chip" data-cat="전신기혈" onclick="toggleCat(this)"><span class="cat-kanji">氣</span><span class="cat-ko">전신기혈</span></div>
+      <div class="cat-chip" data-cat="부인과" onclick="toggleCat(this)"><span class="cat-kanji">婦</span><span class="cat-ko">부인과</span></div>
+      <div class="cat-chip" data-cat="소아과" onclick="toggleCat(this)"><span class="cat-kanji">兒</span><span class="cat-ko">소아과</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="body-view-tabs">
+      <button class="bv-tab active" onclick="setBvTab(this,'front')">앞면 (정면)</button>
+      <button class="bv-tab" onclick="setBvTab(this,'back')">뒷면 (후면)</button>
+      <button class="bv-tab" onclick="setBvTab(this,'side')">옆면 (측면)</button>
+    </div>
+    <div class="body-wrap">
+      <div class="body-svg-wrap">
+        <svg viewBox="0 0 200 440" xmlns="http://www.w3.org/2000/svg" id="bodySvg">
+          <!-- Head -->
+          <ellipse class="zone" cx="100" cy="38" rx="28" ry="32" data-zone="두부" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="100" y="41">두부</text>
+          <!-- Neck -->
+          <rect class="zone" x="88" y="70" width="24" height="18" rx="4" data-zone="경부/항부" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="100" y="82">경부</text>
+          <!-- Chest -->
+          <rect class="zone" x="62" y="88" width="76" height="62" rx="6" data-zone="흉부" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="100" y="122">흉부</text>
+          <!-- Abdomen -->
+          <rect class="zone" x="64" y="150" width="72" height="50" rx="6" data-zone="복부" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="100" y="178">복부</text>
+          <!-- Waist -->
+          <rect class="zone" x="68" y="200" width="64" height="38" rx="6" data-zone="허리/요부" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="100" y="222">허리</text>
+          <!-- Left Upper Arm -->
+          <rect class="zone" x="24" y="90" width="34" height="62" rx="10" data-zone="좌 상완" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="41" y="124">좌완</text>
+          <!-- Right Upper Arm -->
+          <rect class="zone" x="142" y="90" width="34" height="62" rx="10" data-zone="우 상완" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="159" y="124">우완</text>
+          <!-- Left Lower Arm -->
+          <rect class="zone" x="16" y="158" width="28" height="56" rx="8" data-zone="좌 전완" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="30" y="189">전완</text>
+          <!-- Right Lower Arm -->
+          <rect class="zone" x="156" y="158" width="28" height="56" rx="8" data-zone="우 전완" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="170" y="189">전완</text>
+          <!-- Left Hand -->
+          <ellipse class="zone" cx="28" cy="234" rx="14" ry="16" data-zone="좌 수부" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="28" y="238">수</text>
+          <!-- Right Hand -->
+          <ellipse class="zone" cx="172" cy="234" rx="14" ry="16" data-zone="우 수부" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="172" y="238">수</text>
+          <!-- Left Thigh -->
+          <rect class="zone" x="70" y="240" width="28" height="70" rx="8" data-zone="좌 대퇴" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="84" y="278">좌퇴</text>
+          <!-- Right Thigh -->
+          <rect class="zone" x="102" y="240" width="28" height="70" rx="8" data-zone="우 대퇴" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="116" y="278">우퇴</text>
+          <!-- Left Shin -->
+          <rect class="zone" x="72" y="316" width="24" height="68" rx="8" data-zone="좌 하퇴" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="84" y="353">좌경</text>
+          <!-- Right Shin -->
+          <rect class="zone" x="104" y="316" width="24" height="68" rx="8" data-zone="우 하퇴" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="116" y="353">우경</text>
+          <!-- Left Foot -->
+          <ellipse class="zone" cx="84" cy="406" rx="20" ry="14" data-zone="족부/수족지" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="84" y="410">족</text>
+          <!-- Right Foot -->
+          <ellipse class="zone" cx="116" cy="406" rx="20" ry="14" data-zone="족부/수족지" onclick="toggleZone(this)"/>
+          <text class="zone-label" x="116" y="410">족</text>
+        </svg>
+      </div>
+      <div class="selected-list" style="padding-top:8px">
+        <div class="selected-title">선택된 통증 부위 (<span id="zoneCount">0</span>개)</div>
+        <div id="selectedZones"><div class="no-select">신체 부위를 클릭하여 통증 지점을 추가하세요.</div></div>
+        <div class="note mt8">부위를 선택하지 않고 다음 단계에서 직접 증상을 기술할 수도 있습니다</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-bar">
+    <button class="btn btn-ghost" onclick="goStep(1)">← 이전: 기본정보</button>
+    <button class="btn btn-primary" onclick="goStep(3)">다음: 상세 문진 →</button>
+  </div>
+</section>
+
+<!-- ════════════════ STEP 3: 문진 ════════════════ -->
+<section class="step-panel" id="panel3">
+  <div class="section-header">
+    <div class="section-badge">🔎 STEP 3. 상세 증상 문진</div>
+    <div class="section-title">증상을 조금 더 알려주세요</div>
+    <div class="section-sub">선택사항입니다. 필요한 항목만 체크하거나 하단에 직접 입력하세요.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">통증의 좌우 편측 (Laterality)</div>
+    <div class="toggle-group" id="lateralityGroup">
+      <button class="toggle-btn" data-val="좌측" onclick="setToggle('lateralityGroup',this,'좌측')">좌측 (Left)</button>
+      <button class="toggle-btn" data-val="우측" onclick="setToggle('lateralityGroup',this,'우측')">우측 (Right)</button>
+      <button class="toggle-btn active" data-val="양측" onclick="setToggle('lateralityGroup',this,'양측')">양측 (Bilateral)</button>
+      <button class="toggle-btn" data-val="" onclick="setToggle('lateralityGroup',this,'')">좌우 / 편측 없음</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">유병 기간 (Duration)</div>
+    <div class="chip-group" id="durationGroup">
+      <span class="chip" onclick="toggleChipSingle('durationGroup',this)">당일 급성</span>
+      <span class="chip" onclick="toggleChipSingle('durationGroup',this)">3일 이내</span>
+      <span class="chip" onclick="toggleChipSingle('durationGroup',this)">1주 이내</span>
+      <span class="chip" onclick="toggleChipSingle('durationGroup',this)">1개월 이내</span>
+      <span class="chip" onclick="toggleChipSingle('durationGroup',this)">1–3개월</span>
+      <span class="chip active" onclick="toggleChipSingle('durationGroup',this)">3개월 이상 (만성)</span>
+      <span class="chip" onclick="toggleChipSingle('durationGroup',this)">1년 이상 (교질)</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">주요 호소 증상 (복수 선택 가능)</div>
+    <div class="chip-group" id="symptomsGroup">
+      <span class="chip" onclick="toggleChip(this)">극심한 관절통</span>
+      <span class="chip" onclick="toggleChip(this)">뻐근한 근육통</span>
+      <span class="chip" onclick="toggleChip(this)">신경통/저림</span>
+      <span class="chip" onclick="toggleChip(this)">보행 장애</span>
+      <span class="chip" onclick="toggleChip(this)">관절 가동범위 제한</span>
+      <span class="chip" onclick="toggleChip(this)">두통/어지럼증</span>
+      <span class="chip" onclick="toggleChip(this)">소화불량/속쓰림</span>
+      <span class="chip" onclick="toggleChip(this)">만성 피로/기력저하</span>
+      <span class="chip" onclick="toggleChip(this)">불면/자율신경실조증</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">통증 성질 및 감각 (Pain Quality)</div>
+    <div class="chip-group" id="painQualityGroup">
+      <span class="chip" onclick="toggleChip(this)">욱씬거림</span>
+      <span class="chip" onclick="toggleChip(this)">찌르는 통증</span>
+      <span class="chip" onclick="toggleChip(this)">쪽박/비교</span>
+      <span class="chip active" onclick="toggleChip(this)">당김/경련</span>
+      <span class="chip" onclick="toggleChip(this)">찢어짐/찰과</span>
+      <span class="chip" onclick="toggleChip(this)">화끈거림 (열감)</span>
+      <span class="chip" onclick="toggleChip(this)">시림 (한감)</span>
+      <span class="chip" onclick="toggleChip(this)">묵직함/당김</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">악화 및 완화 요인 (Aggravating Factors)</div>
+    <div class="chip-group" id="aggravGroup">
+      <span class="chip active" onclick="toggleChip(this)">움직일 때/보행 시 악화</span>
+      <span class="chip" onclick="toggleChip(this)">오래 앉아있을 때 악화</span>
+      <span class="chip" onclick="toggleChip(this)">음식/식사 시 악화</span>
+      <span class="chip" onclick="toggleChip(this)">아침 기상 시 뻣뻣함</span>
+      <span class="chip" onclick="toggleChip(this)">야간에 심해짐</span>
+      <span class="chip" onclick="toggleChip(this)">추위/한냉에 악화</span>
+      <span class="chip" onclick="toggleChip(this)">비오거나 흐린 날 악화</span>
+      <span class="chip" onclick="toggleChip(this)">스트레스 받을 때 악화</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">추가 임상 소견 및 특이사항</div>
+    <textarea id="additionalNotes" placeholder="예: 야간에 심하여 수면 장애 동반. 운동회 시 호전되고 근 곳에 기면시 사라지는 경향. 이전 집 치료 시 생명골 치방 후 이전 집 호전된 병력."></textarea>
+  </div>
+
+  <div class="nav-bar">
+    <button class="btn btn-ghost" onclick="goStep(2)">← 이전: 신체 탭</button>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost" onclick="goStep(4)">설-맥진 바로 가기 →</button>
+      <button class="btn btn-primary" onclick="goStep(4)">다음: 설-맥진 →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ STEP 4: 설-맥진 ════════════════ -->
+<section class="step-panel" id="panel4">
+  <div class="section-header">
+    <div class="section-badge">👅 STEP 4. 설-맥진</div>
+    <div class="section-title">설진과 맥진을 선택하세요</div>
+    <div class="section-sub">임상에서 중요한 특이사항이 없다면 항목을 체크하고 바로 처방 결과로 이동해도 좋습니다.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">1. 설진 조건 (Tongue Diagnosis) &nbsp;<span style="font-size:10px;color:var(--muted);font-weight:400">다중 선택 가능</span></div>
+    <div class="tongue-grid" id="tongueGrid">
+      <div class="tongue-card active" onclick="toggleTongue(this)">
+        <div class="tongue-name">담홍설 (淡紅色)</div>
+        <div class="tongue-desc">정상 설진, 기혈 조화</div>
+      </div>
+      <div class="tongue-card" onclick="toggleTongue(this)">
+        <div class="tongue-name">홍설 (紅色)</div>
+        <div class="tongue-desc">열증/음허</div>
+      </div>
+      <div class="tongue-card" onclick="toggleTongue(this)">
+        <div class="tongue-name">암설 (暗設)</div>
+        <div class="tongue-desc">어혈 관련</div>
+      </div>
+      <div class="tongue-card" onclick="toggleTongue(this)">
+        <div class="tongue-name">담백설 (淡白色)</div>
+        <div class="tongue-desc">기혈허, 양허증</div>
+      </div>
+      <div class="tongue-card" onclick="toggleTongue(this)">
+        <div class="tongue-name">청자어 (靑紫)</div>
+        <div class="tongue-desc">한증(냉증), 어혈</div>
+      </div>
+      <div class="tongue-card" onclick="toggleTongue(this)">
+        <div class="tongue-name">황태 (黃苔)</div>
+        <div class="tongue-desc">이습증(濕熱)</div>
+      </div>
+      <div class="tongue-card" onclick="toggleTongue(this)">
+        <div class="tongue-name">백태·경병 (白苔)</div>
+        <div class="tongue-desc">표증, 한증</div>
+      </div>
+      <div class="tongue-card" onclick="toggleTongue(this)">
+        <div class="tongue-name">무태·경병설 (無苔)</div>
+        <div class="tongue-desc">음허, 위음부족</div>
+      </div>
+      <div class="tongue-card" onclick="toggleTongue(this)">
+        <div class="tongue-name">열홍설 (裂紋舌)</div>
+        <div class="tongue-desc">음허 또는 열성</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">2. 맥진 소견 (Pulse Diagnosis)</div>
+    <div class="slider-wrap">
+      <div class="slider-labels">
+        <span>浮脈 (부 — 겉/가벼운 탈)</span>
+        <span>沈脈 (침 — 깊이 눌러야 탈)</span>
+      </div>
+      <input type="range" id="pulseDepth" min="0" max="10" value="5" oninput="updateSlider(this,'pulseDepthVal')">
+      <div class="slider-val" id="pulseDepthVal">중간 (보통)</div>
+    </div>
+    <div class="slider-wrap">
+      <div class="slider-labels">
+        <span>遲脈 (지 — 느린 탈)</span>
+        <span>數脈 (삭 — 빠른)</span>
+      </div>
+      <input type="range" id="pulseRate" min="0" max="10" value="5" oninput="updateSlider(this,'pulseRateVal')">
+      <div class="slider-val" id="pulseRateVal">평맥 (보통)</div>
+    </div>
+  </div>
+
+  <div class="nav-bar">
+    <button class="btn btn-ghost" onclick="goStep(3)">← 이전: 상세 문진</button>
+    <button class="btn btn-primary" onclick="submitPrescription()">침 처방 결과 보기 →</button>
+  </div>
+</section>
+
+<!-- ════════════════ STEP 5: 결과 ════════════════ -->
+<section class="step-panel" id="panel5">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+    <div class="quick-nav" id="summaryBreadcrumb"></div>
+    <button class="btn btn-sm btn-ghost" onclick="resetForm()">↺ 새 환자 진료 시작</button>
+  </div>
+
+  <div id="resultArea">
+    <div class="empty-state">
+      <div class="empty-icon">🫁</div>
+      <div class="empty-text">환자 정보를 입력하고 처방 생성을 눌러주세요</div>
+    </div>
+  </div>
+
+  <div class="nav-bar" id="resultNav" style="display:none">
+    <button class="btn btn-ghost" onclick="goStep(4)">← 이전: 설-맥진</button>
+    <button class="btn btn-primary" onclick="submitPrescription()">↺ 재처방 생성</button>
+  </div>
+</section>
+
+</main>
+
+<script>
+const API_URL = 'https://kmd-clinical-assistant.38card.workers.dev';
+let currentStep = 1;
+const selectedZones = new Set();
+const selectedCats = new Set();
+
+/* ── STEP NAV ── */
+function goStep(n) {
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel' + n).classList.add('active');
+  document.querySelectorAll('.step-btn').forEach(b => {
+    const s = parseInt(b.dataset.step);
+    b.classList.remove('active','done');
+    if (s === n) b.classList.add('active');
+    else if (s < n) b.classList.add('done');
+  });
+  currentStep = n;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ── TOGGLE HELPERS ── */
+function setToggle(groupId, btn, val) {
+  document.querySelectorAll(\`#\${groupId} .toggle-btn\`).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function toggleChipSingle(groupId, chip) {
+  document.querySelectorAll(\`#\${groupId} .chip\`).forEach(c => c.classList.remove('active'));
+  chip.classList.toggle('active');
+}
+function toggleChip(chip) { chip.classList.toggle('active'); }
+function toggleTongue(card) { card.classList.toggle('active'); }
+
+/* ── BMI ── */
+function calcBMI() {
+  const ft = parseFloat(document.getElementById('ht-ft').value)||0;
+  const inch = parseFloat(document.getElementById('ht-in').value)||0;
+  const lb = parseFloat(document.getElementById('wt-lb').value)||0;
+  const cm = Math.round((ft*30.48)+(inch*2.54));
+  const kg = Math.round(lb*0.4536*10)/10;
+  const bmi = cm>0 ? Math.round((kg/((cm/100)**2))*10)/10 : 0;
+  let status='', cls='normal';
+  if(bmi<18.5){status='저체중';cls='under';}
+  else if(bmi<25){status='정상';cls='normal';}
+  else if(bmi<30){status='과체중';cls='over';}
+  else{status='비만';cls='over';}
+  document.getElementById('bmiText').textContent = \`신장: \${cm}cm / \${kg}kg  ·  BMI 지수: \${bmi} kg/m²\`;
+  const st = document.getElementById('bmiStatus');
+  st.textContent = status;
+  st.className = 'bmi-status ' + cls;
+}
+calcBMI();
+
+/* ── BODY DIAGRAM ── */
+function toggleZone(el) {
+  const zone = el.dataset.zone;
+  if (el.classList.contains('selected')) {
+    el.classList.remove('selected');
+    selectedZones.delete(zone);
+  } else {
+    el.classList.add('selected');
+    selectedZones.add(zone);
+  }
+  renderSelectedZones();
+}
+function toggleCat(el) {
+  const cat = el.dataset.cat;
+  if (el.classList.contains('active')) {
+    el.classList.remove('active');
+    selectedCats.delete(cat);
+  } else {
+    el.classList.add('active');
+    selectedCats.add(cat);
+  }
+  renderSelectedZones();
+}
+function renderSelectedZones() {
+  const all = new Set([...selectedZones, ...selectedCats]);
+  document.getElementById('zoneCount').textContent = all.size;
+  const container = document.getElementById('selectedZones');
+  if (all.size === 0) {
+    container.innerHTML = '<div class="no-select">신체 부위를 클릭하여 통증 지점을 추가하세요.</div>';
+  } else {
+    container.innerHTML = [...all].map(z =>
+      \`<span class="selected-tag">\${z} <button onclick="removeZone('\${z}')">×</button></span>\`
+    ).join('');
+  }
+}
+function removeZone(zone) {
+  selectedZones.delete(zone); selectedCats.delete(zone);
+  document.querySelectorAll(\`.zone[data-zone="\${zone}"]\`).forEach(el=>el.classList.remove('selected'));
+  document.querySelectorAll(\`.cat-chip[data-cat="\${zone}"]\`).forEach(el=>el.classList.remove('active'));
+  renderSelectedZones();
+}
+function setBvTab(btn, _view) {
+  document.querySelectorAll('.bv-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+/* ── SLIDERS ── */
+const pulseDepthLabels = ['부맥 (매우 浮)','부맥 (浮)','부중맥','부중맥','중맥','중간 (보통)','중침맥','중침맥','침맥','침맥 (沈)','침맥 (매우 沈)'];
+const pulseRateLabels  = ['지맥 (매우 遲)','지맥 (遲)','지완맥','완맥','완맥','평맥 (보통)','평삭맥','삭맥','삭맥 (數)','삭맥 (數)','삭맥 (매우 數)'];
+function updateSlider(el, valId) {
+  const v = parseInt(el.value);
+  const labels = el.id === 'pulseDepth' ? pulseDepthLabels : pulseRateLabels;
+  document.getElementById(valId).textContent = labels[v];
+  el.style.background = \`linear-gradient(to right, var(--primary) \${v*10}%, #e2e8f0 \${v*10}%)\`;
+}
+updateSlider(document.getElementById('pulseDepth'), 'pulseDepthVal');
+updateSlider(document.getElementById('pulseRate'), 'pulseRateVal');
+
+/* ── COLLECT DATA ── */
+function collectPayload() {
+  const age = parseInt(document.getElementById('age').value);
+  const genderBtn = document.querySelector('#genderGroup .toggle-btn.active');
+  const gender = genderBtn ? genderBtn.dataset.val : '미지정';
+
+  // Chief complaint
+  const directText = document.getElementById('chiefComplaint').value.trim();
+  const bodyZones = [...new Set([...selectedZones, ...selectedCats])];
+  const selSymptoms = [...document.querySelectorAll('#symptomsGroup .chip.active')].map(c=>c.textContent);
+
+  let symptom = directText;
+  if (!symptom && bodyZones.length > 0) symptom = bodyZones.join(', ') + ' 통증';
+  if (!symptom) symptom = '전신 불편감';
+
+  // Affected side
+  const latBtn = document.querySelector('#lateralityGroup .toggle-btn.active');
+  const affectedSide = latBtn ? (latBtn.dataset.val || null) : null;
+
+  // Duration
+  const durChip = document.querySelector('#durationGroup .chip.active');
+  const duration = durChip ? durChip.textContent : null;
+
+  // Tongue
+  const tongueCards = [...document.querySelectorAll('#tongueGrid .tongue-card.active')];
+  const tongue = tongueCards.map(c=>c.querySelector('.tongue-name').textContent).join(', ') || null;
+
+  // Pulse
+  const depthV = parseInt(document.getElementById('pulseDepth').value);
+  const rateV  = parseInt(document.getElementById('pulseRate').value);
+  const depthLabel = pulseDepthLabels[depthV];
+  const rateLabel  = pulseRateLabels[rateV];
+  const pulse = (depthV !== 5 || rateV !== 5) ? \`\${depthLabel}, \${rateLabel}\` : null;
+
+  // Pain quality + aggravation
+  const pqChips = [...document.querySelectorAll('#painQualityGroup .chip.active')].map(c=>c.textContent);
+  const agChips = [...document.querySelectorAll('#aggravGroup .chip.active')].map(c=>c.textContent);
+  const additionalNotes = document.getElementById('additionalNotes').value.trim() || null;
+
+  const secSymptoms = [...selSymptoms, ...pqChips, ...agChips];
+
+  const payload = { age, gender, symptom };
+  if (affectedSide) payload.affected_side = affectedSide;
+  if (duration) payload.duration = duration;
+  if (tongue) payload.tongue = tongue;
+  if (pulse) payload.pulse = pulse;
+  if (secSymptoms.length) payload.secondary_symptoms = secSymptoms;
+  if (additionalNotes) payload.additional_notes = additionalNotes;
+
+  return payload;
+}
+
+/* ── BREADCRUMB ── */
+function renderBreadcrumb(p) {
+  document.getElementById('summaryBreadcrumb').innerHTML = \`
+    <span class="quick-nav-label">빠른 수정:</span>
+    <button class="quick-nav-btn" onclick="goStep(1)">기본정보</button>
+    <button class="quick-nav-btn" onclick="goStep(2)">신체 탭(3-View)</button>
+    <button class="quick-nav-btn" onclick="goStep(3)">문진</button>
+    <button class="quick-nav-btn" onclick="goStep(4)">설·맥진</button>
+  \`;
+}
+
+/* ── SUBMIT ── */
+async function submitPrescription() {
+  const payload = collectPayload();
+  goStep(5);
+  document.getElementById('resultNav').style.display = 'none';
+  renderBreadcrumb(payload);
+  document.getElementById('spinnerOverlay').classList.add('show');
+  document.getElementById('resultArea').innerHTML = '';
+  try {
+    const res = await fetch(\`\${API_URL}/prescription\`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || res.statusText);
+    }
+    const data = await res.json();
+    renderResult(data);
+    document.getElementById('resultNav').style.display = 'flex';
+  } catch(e) {
+    document.getElementById('resultArea').innerHTML = \`
+      <div class="caution-card">
+        <div class="card-label">⚠️ 오류</div>
+        <div class="caution-text">\${e.message}<br><br>Cloudflare Worker (https://kmd-clinical-assistant.38card.workers.dev) 배포 상태를 확인하세요.</div>
+      </div>\`;
+  } finally {
+    document.getElementById('spinnerOverlay').classList.remove('show');
+  }
+}
+
+/* ── RENDER RESULT ── */
+function renderResult(data) {
+  const diag = data.diagnosis || {};
+  const presc = data.prescription || {};
+  const sec = data.secondary_treatment || {};
+  const tung = data.tung_acupuncture || {};
+  const rationale = data.rationale || '';
+  const caution = data.caution || null;
+  const confidence = data.confidence || 'medium';
+  const treatmentPrinciple = data.treatment_principle || '';
+
+  function ptChip(pt, showAction=true) {
+    const code = pt.point_code ? \`<span class="pt-code">\${pt.point_code}</span>\` : '';
+    let badge = '';
+    if (showAction && pt.action) {
+      badge = pt.action === '보'
+        ? \`<span class="pt-action-bo">보</span>\`
+        : \`<span class="pt-action-sa">사</span>\`;
+    }
+    return \`<span class="pt-chip">\${pt.point||''}\${code}\${badge}</span>\`;
+  }
+
+  // ── Assessment card (dark) ──
+  let html = \`
+  <div class="assess-card">
+    <div class="assess-label">🔬 임상 변증 분석 (Assessment) · 달리보험 침구 처방 기반</div>
+    <div class="assess-pattern">\${diag.pattern || '-'}</div>
+    <div class="assess-sub">\${rationale ? rationale.split(/[.。]/).filter(s=>s.trim())[0] : (diag.primary_meridian||'')}</div>
+    \${treatmentPrinciple ? \`
+    <div class="principle-inner">
+      <div class="principle-inner-label">치료 원칙 (TREATMENT PRINCIPLE)</div>
+      <div class="principle-inner-text">\${treatmentPrinciple}</div>
+    </div>\` : ''}
+  </div>\`;
+
+  // ── Prescription section header ──
+  html += \`
+  <div class="rx-section-header">
+    <span class="rx-section-title">추천 침구 처방 (Acupuncture Formulas)</span>
+    <span class="rx-section-note">혈위를 클릭하면 위치를 확인할 수 있습니다</span>
+  </div>\`;
+
+  // ── 동씨침법 ──
+  const tungPoints = (tung.points || []).sort((a,b)=>(a.order||0)-(b.order||0));
+  if (tungPoints.length) {
+    const chips = tungPoints.map(pt => {
+      const code = pt.point_code ? \`<span class="pt-code">\${pt.point_code}</span>\` : '';
+      const badge = pt.action === '보'
+        ? \`<span class="pt-action-bo">보</span>\`
+        : \`<span class="pt-action-sa">사</span>\`;
+      const ind = pt.indication ? \`<div style="font-size:10px;color:#a16207;font-style:italic;margin-top:2px">\${pt.indication}</div>\` : '';
+      return \`<div class="pt-chip" style="flex-direction:column;align-items:flex-start;gap:2px"><div style="display:flex;align-items:center;gap:3px">\${pt.point||''}\${code}\${badge}</div>\${ind}</div>\`;
+    }).join('');
+    html += \`
+  <div class="rx-card rx-tung-card">
+    <div class="rx-sub-header">
+      <span class="rx-type-badge tung-badge">동씨침법(董氏針法)</span>
+      <span class="rx-type-sub">도기침법(동씨針法) 병용</span>
+    </div>
+    <div class="pt-chips">\${chips}</div>
+    \${tung.notes ? \`<div class="rx-card-note">💡 \${tung.notes}</div>\` : ''}
+  </div>\`;
+  }
+
+  // ── 사암오행침법 ──
+  const saamPoints = (presc.points || []).sort((a,b)=>(a.order||0)-(b.order||0));
+  if (presc.method || saamPoints.length) {
+    const methodChip = presc.method ? \`<span class="method-chip">사암 \${presc.method}</span>\` : '';
+    const chips = saamPoints.map(pt => ptChip(pt)).join('');
+    html += \`
+  <div class="rx-card rx-saam-card">
+    <div class="rx-sub-header">
+      <span class="rx-type-badge saam-badge">사암오행침법(舍岩五行針)</span>
+      <span class="rx-type-sub">양보 보사(補瀉) 적용 · \${diag.primary_meridian||''} 기준</span>
+    </div>
+    <div class="pt-chips" style="gap:8px 6px">\${methodChip}\${chips}</div>
+    <div class="rx-card-note">💡 \${diag.primary_meridian||''} 오수혈 배열 — 반드시 반대측(건측) 취혈 적용.</div>
+  </div>\`;
+  }
+
+  // ── 정경 상용 혈 ──
+  const secPoints = (sec.points || []).sort((a,b)=>(a.order||0)-(b.order||0));
+  if (secPoints.length) {
+    const chips = secPoints.map(pt => ptChip(pt, false)).join('');
+    html += \`
+  <div class="rx-card rx-jeongyeong-card">
+    <div class="rx-sub-header">
+      <span class="rx-type-badge jeongyeong-badge">정경 상용 혈(14혈위)</span>
+      <span class="rx-type-sub">사중용·활혈혈 배합</span>
+    </div>
+    <div class="pt-chips">\${chips}</div>
+    \${sec.notes ? \`<div class="rx-card-note">💡 \${sec.notes}</div>\` : ''}
+  </div>\`;
+  }
+
+  // ── 처방 근거 ──
+  if (rationale) {
+    html += \`
+  <div class="rationale-card">
+    <div class="card-label">📋 처방 근거 (Rationale)</div>
+    <div class="rationale-text">\${rationale}</div>
+  </div>\`;
+  }
+
+  // ── 임상 가이드 및 금기 ──
+  if (caution) {
+    const lines = caution.split(/(?<=[.。])\\s*/).filter(l=>l.trim().length > 2);
+    const listHtml = lines.length > 1
+      ? \`<ul class="caution-list">\${lines.map(l=>\`<li>\${l.trim()}</li>\`).join('')}</ul>\`
+      : \`<div class="caution-text">\${caution}</div>\`;
+    html += \`
+  <div class="caution-card">
+    <div class="caution-header">⚠️ 임상 가이드 및 금기 (PRECAUTIONS)</div>
+    \${listHtml}
+  </div>\`;
+  }
+
+  // ── 신뢰도 ──
+  const confMap = {high:'conf-high',medium:'conf-medium',low:'conf-low'};
+  const confLabel = {high:'높음 ✓',medium:'보통',low:'낮음 △'};
+  html += \`<div class="confidence-row">처방 신뢰도: <span class="\${confMap[confidence]||'conf-medium'}">\${confLabel[confidence]||confidence}</span></div>\`;
+
+  document.getElementById('resultArea').innerHTML = html;
+}
+
+/* ── RESET ── */
+function resetForm() {
+  document.getElementById('chiefComplaint').value='';
+  document.getElementById('additionalNotes').value='';
+  document.getElementById('age').value=65;
+  selectedZones.clear(); selectedCats.clear();
+  document.querySelectorAll('.zone.selected').forEach(el=>el.classList.remove('selected'));
+  document.querySelectorAll('.cat-chip.active').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.chip.active').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tongue-card.active').forEach(el=>el.classList.remove('active'));
+  document.querySelector('#tongueGrid .tongue-card').classList.add('active');
+  document.querySelector('#lateralityGroup [data-val="양측"]').classList.add('active');
+  document.querySelectorAll('#lateralityGroup .toggle-btn:not([data-val="양측"])').forEach(b=>b.classList.remove('active'));
+  document.getElementById('pulseDepth').value=5;
+  document.getElementById('pulseRate').value=5;
+  updateSlider(document.getElementById('pulseDepth'),'pulseDepthVal');
+  updateSlider(document.getElementById('pulseRate'),'pulseRateVal');
+  renderSelectedZones();
+  goStep(1);
+}
+</script>
+</body>
+</html>`;
+
 // Embedded from prompt_template.txt (keep in sync with backend/main.py)
 const SYSTEM_INSTRUCTION = `당신은 한국 전통 사암침(舍岩鍼) 전문 임상 의사 AI입니다.
 [USER REQUEST] 섹션에 제공된 실제 환자 정보만을 사용하여 사암침 처방을 생성합니다.
@@ -298,6 +1296,12 @@ export default {
 
     if (url.pathname === "/health") {
       return Response.json({ status: "ok" }, { headers: CORS_HEADERS });
+    }
+
+    if (url.pathname === "/" && request.method === "GET") {
+      return new Response(HTML_PAGE, {
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      });
     }
 
     if (url.pathname === "/prescription" && request.method === "POST") {
