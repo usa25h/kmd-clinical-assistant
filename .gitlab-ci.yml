@@ -1,0 +1,17 @@
+stages:
+  - deploy
+
+deploy-worker:
+  stage: deploy
+  image: node:22-slim
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - worker/**/*
+  script:
+    - cd worker
+    - npm ci
+    - npx wrangler deploy
+  variables:
+    CLOUDFLARE_API_TOKEN: $CLOUDFLARE_API_TOKEN
+    CLOUDFLARE_ACCOUNT_ID: $CLOUDFLARE_ACCOUNT_ID
