@@ -3451,11 +3451,9 @@ export default {
       }
 
       if (!geminiRes.ok) {
-        const clientMsg = geminiRes.status === 429
-          ? "요청이 너무 많습니다. 잠시 후 다시 시도하세요."
-          : "처방 생성 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도하세요.";
+        const errBody = await geminiRes.text();
         return Response.json(
-          { detail: clientMsg },
+          { detail: `[DEBUG] status=${geminiRes.status} body=${errBody.slice(0, 500)}` },
           { status: 502, headers: CORS_HEADERS }
         );
       }
