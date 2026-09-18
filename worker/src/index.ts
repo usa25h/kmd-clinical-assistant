@@ -3432,6 +3432,8 @@ export default {
         },
       });
 
+      const abortCtrl = new AbortController();
+      const abortTimer = setTimeout(() => abortCtrl.abort(), 25000);
       let geminiRes: Response;
       try {
         geminiRes = await fetch(
@@ -3440,14 +3442,16 @@ export default {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: geminiBody,
-            signal: AbortSignal.timeout(25000),
+            signal: abortCtrl.signal,
           }
         );
       } catch (e) {
-        const msg = e instanceof Error && e.name === "TimeoutError"
+        const msg = abortCtrl.signal.aborted
           ? "처방 생성 시간이 초과되었습니다. 증상을 좀 더 간략하게 입력 후 다시 시도하세요."
           : "처방 생성 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도하세요.";
         return Response.json({ detail: msg }, { status: 504, headers: CORS_HEADERS });
+      } finally {
+        clearTimeout(abortTimer);
       }
 
       if (!geminiRes.ok) {
