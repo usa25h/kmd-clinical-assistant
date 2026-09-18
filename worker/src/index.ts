@@ -4551,19 +4551,31 @@ export default {
         },
       });
 
-      const geminiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${env.GEMINI_API_KEY}`,
-        { method: "POST", headers: { "Content-Type": "application/json" }, body: geminiBody }
-      );
+      const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${env.GEMINI_API_KEY}`;
+      const RETRY_DELAYS = [1000, 2000, 4000];
+      let geminiRes: Response | null = null;
 
-      if (!geminiRes.ok) {
+      for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt++) {
+        geminiRes = await fetch(GEMINI_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: geminiBody,
+        });
+        if (geminiRes.ok) break;
+        const retryable = geminiRes.status === 503 || geminiRes.status === 429;
+        if (!retryable || attempt === RETRY_DELAYS.length) break;
+        await new Promise((r) => setTimeout(r, RETRY_DELAYS[attempt]));
+      }
+
+      if (!geminiRes!.ok) {
+        const errText = await geminiRes!.text().catch(() => "");
         return Response.json(
-          { detail: "처방 생성 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해 주세요." },
+          { detail: `[DEBUG] status=${geminiRes!.status} | ${errText}` },
           { status: 502, headers: CORS_HEADERS }
         );
       }
 
-      const geminiData = await geminiRes.json<GeminiResponse>();
+      const geminiData = await geminiRes!.json<GeminiResponse>();
       const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
 
       if (!text) {
