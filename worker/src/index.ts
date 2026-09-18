@@ -3435,7 +3435,7 @@ export default {
       let geminiRes: Response;
       try {
         geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${env.GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${env.GEMINI_API_KEY}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -3451,9 +3451,11 @@ export default {
       }
 
       if (!geminiRes.ok) {
-        const errBody = await geminiRes.text();
+        const clientMsg = geminiRes.status === 429
+          ? "요청이 너무 많습니다. 잠시 후 다시 시도하세요."
+          : "처방 생성 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도하세요.";
         return Response.json(
-          { detail: `[DEBUG] status=${geminiRes.status} body=${errBody.slice(0, 500)}` },
+          { detail: clientMsg },
           { status: 502, headers: CORS_HEADERS }
         );
       }
