@@ -3432,22 +3432,26 @@ export default {
         },
       });
 
-      let geminiRes: Response | null = null;
-      let lastErrText = "";
-      for (let attempt = 0; attempt < 3; attempt++) {
-        if (attempt > 0) await new Promise((r) => setTimeout(r, attempt * 2000));
+      let geminiRes: Response;
+      try {
         geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${env.GEMINI_API_KEY}`,
-          { method: "POST", headers: { "Content-Type": "application/json" }, body: geminiBody }
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${env.GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: geminiBody,
+            signal: AbortSignal.timeout(25000),
+          }
         );
-        if (geminiRes.ok) break;
-        lastErrText = await geminiRes.text();
-        if (geminiRes.status !== 503 && geminiRes.status !== 429) break;
+      } catch (e) {
+        const msg = e instanceof Error && e.name === "TimeoutError"
+          ? "처방 생성 시간이 초과되었습니다. 증상을 좀 더 간략하게 입력 후 다시 시도하세요."
+          : "처방 생성 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도하세요.";
+        return Response.json({ detail: msg }, { status: 504, headers: CORS_HEADERS });
       }
 
-      if (!geminiRes!.ok) {
-        const statusCode = geminiRes!.status;
-        const clientMsg = statusCode === 429
+      if (!geminiRes.ok) {
+        const clientMsg = geminiRes.status === 429
           ? "요청이 너무 많습니다. 잠시 후 다시 시도하세요."
           : "처방 생성 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도하세요.";
         return Response.json(
