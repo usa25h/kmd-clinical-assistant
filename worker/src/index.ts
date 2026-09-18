@@ -3432,34 +3432,15 @@ export default {
         },
       });
 
-      const abortCtrl = new AbortController();
-      const abortTimer = setTimeout(() => abortCtrl.abort(), 25000);
-      let geminiRes: Response;
-      try {
-        geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${env.GEMINI_API_KEY}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: geminiBody,
-            signal: abortCtrl.signal,
-          }
-        );
-      } catch (e) {
-        const msg = abortCtrl.signal.aborted
-          ? "처방 생성 시간이 초과되었습니다. 증상을 좀 더 간략하게 입력 후 다시 시도하세요."
-          : "처방 생성 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도하세요.";
-        return Response.json({ detail: msg }, { status: 504, headers: CORS_HEADERS });
-      } finally {
-        clearTimeout(abortTimer);
-      }
+      const geminiRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${env.GEMINI_API_KEY}`,
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: geminiBody }
+      );
 
       if (!geminiRes.ok) {
-        const clientMsg = geminiRes.status === 429
-          ? "요청이 너무 많습니다. 잠시 후 다시 시도하세요."
-          : "처방 생성 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도하세요.";
+        const errBody = await geminiRes.text();
         return Response.json(
-          { detail: clientMsg },
+          { detail: `[DEBUG] status=${geminiRes.status} | ${errBody.slice(0, 600)}` },
           { status: 502, headers: CORS_HEADERS }
         );
       }
