@@ -161,6 +161,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .rationale-text{font-size:13.5px;line-height:1.8;color:var(--sub)}
 .caution-card{border:1.5px solid var(--warn-b);border-radius:12px;padding:16px 20px;margin-bottom:12px;background:var(--warn-bg)}
 .caution-text{font-size:13px;line-height:1.7;color:var(--warn-t)}
+.narrative-card{border:1px solid #bfdbfe;border-radius:12px;padding:18px 20px;margin-bottom:12px;background:#eff6ff}
+.narrative-header{font-size:13px;font-weight:700;color:#1d4ed8;margin-bottom:10px}
+.narrative-body{font-size:13px;line-height:1.85;color:#1e3a5f;white-space:normal}
+.narrative-body strong{color:#0d1f2d;font-weight:700}
 .confidence-row{text-align:right;font-size:12px;color:var(--muted);margin-top:4px}
 .conf-high{color:#16a34a;font-weight:700}
 .conf-medium{color:#d97706;font-weight:700}
@@ -192,6 +196,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .caution-card{border:1.5px solid var(--warn-b);border-radius:12px;padding:16px 20px;margin-bottom:12px;background:var(--warn-bg)}
 .caution-header{font-size:13px;font-weight:700;color:var(--warn-t);margin-bottom:8px}
 .caution-list{padding-left:18px;font-size:13px;line-height:1.9;color:var(--warn-t);margin:0}
+.narrative-card{border:1px solid #bfdbfe;border-radius:12px;padding:18px 20px;margin-bottom:12px;background:#eff6ff}
+.narrative-header{font-size:13px;font-weight:700;color:#1d4ed8;margin-bottom:10px}
+.narrative-body{font-size:13px;line-height:1.85;color:#1e3a5f;white-space:normal}
+.narrative-body strong{color:#0d1f2d;font-weight:700}
 .quick-nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .quick-nav-label{font-size:11.5px;font-weight:700;color:var(--muted)}
 .quick-nav-btn{background:#f1f5f9;border:none;border-radius:6px;padding:4px 10px;font-size:11.5px;color:var(--sub);cursor:pointer;transition:.15s}
@@ -1090,6 +1098,21 @@ function renderResult(data) {
   </div>\`;
   }
 
+  // ── 임상 처방 해설 (clinical_narrative) ──
+  const narrative = data.clinical_narrative || '';
+  if (narrative) {
+    // Convert **bold** and newlines to HTML
+    const narrativeHtml = narrative
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\\*\\*(.+?)\\*\\*/g,'<strong>$1</strong>')
+      .replace(/\\n/g,'<br>');
+    html += \`
+  <div class="narrative-card">
+    <div class="narrative-header">📖 임상 처방 해설 (Clinical Narrative)</div>
+    <div class="narrative-body">\${narrativeHtml}</div>
+  </div>\`;
+  }
+
   // ── 신뢰도 ──
   const confMap = {high:'conf-high',medium:'conf-medium',low:'conf-low'};
   const confLabel = {high:'높음 ✓',medium:'보통',low:'낮음 △'};
@@ -1176,12 +1199,25 @@ const SYSTEM_INSTRUCTION = `당신은 한국 전통 사암침(舍岩鍼) 전문 
 | 비허 수습·하지 부종 | 사화중·사화외 | 88.12·88.13 | 위경 대퇴부 | 보법 |
 | 손발가락 저림·관절 통증 | 오호 | 11.27 | 무지 척측 | 보/사 |
 | 간경·안질환·신허 복합 | 명황·천황부 | 88.19·88.14 | 대퇴 내측 | 보법 |
+| **족근통·발뒤꿈치 통증 (1순위)** | **오호5혈** | **11.27** | 엄지손가락 적백육제 제5혈 | 뼈 밑 바짝 붙여 깊게 자입 (건측) |
+| 족근통·뼈속 통증 (골극) | 골관·목관 | 77.01·77.02 | 수배 소지·무명지 중수골 사이 | 골병→골관, 근병→목관 |
+| 발목 염좌·족근 복합 통증 | 오호4·5혈+소절 | 11.26·11.27·22.13 | 무지 척측+소지 | 사법 (급성 지통) |
+| 수족상대 발목·발뒤꿈치 | 대릉혈 | PC7 | 손목 중앙 장측 | 교차대응 (건측) |
+| 아킬레스건·뒤꿈치 인대 | 정근·정종 | 1010.01·1010.02 | 종아리 중앙 | 건측 자침, 보법 |
+| 만성 족근통+미골·선골통 동반 | 화전·폐심 | 22.01·22.02 | 수배 척측 | 만성 4개월 이상 |
+| 어깨·경추 전면 통증 | 중평혈 | 88.25 | 비골두 아래 족삼리 외측 | 사법 |
+| 요통·요추 디스크 | 영골·대백 대측 | 22.05·22.06 | 수배 합곡 위 | 강자극 사법 |
+| 두통·편두통·항강 | 중구·중仙 | 1010.07·1010.08 | 족배 2·3지 사이 | 사법 |
 
 **동씨침 시술 원칙:**
-- 하삼황(88.17-88.19): 세 혈위 동시 자침, 경골 내측 취혈 — 신허 패턴의 1순위 특효혈
-- 영골(22.05)+대백(22.06): 대측(건측) 수배 자침 → 하지·요통·신경통 즉효
-- 노궁(PC8) 사법: 발바닥 작열·팅글링 시 반드시 추가
-- 통신(88.09)+통위(88.10): 신기불고 패턴(소변 거품·단백뇨)에 하삼황과 병용
+- **하삼황(88.17-88.19)**: 세 혈위 동시 자침, 경골 내측 취혈 — 신허 패턴의 1순위 특효혈
+- **영골(22.05)+대백(22.06)**: 대측(건측) 수배 자침 → 하지·요통·신경통 즉효
+- **노궁(PC8) 사법**: 발바닥 작열·팅글링 시 반드시 추가
+- **통신(88.09)+통위(88.10)**: 신기불고 패턴(소변 거품·단백뇨)에 하삼황과 병용
+- **오호5혈(11.27)**: 족근통·발뒤꿈치 통증 1순위 특효혈 — 엄지손가락 적백육제 5번째 압통점, 뼈 밑 바짝 붙여 깊게 자입
+- **골관(77.01)·목관(77.02)**: 족근 골병(뼈속 통증)·근병(인대 통증) 구별 취혈
+- **대릉(PC7)**: 수족상대 원리 — 손목 대응 발목·발뒤꿈치 즉각 진통
+- **정근·정종(1010.01-02)**: 아킬레스건·종아리 근건 통증 특효, 건측 자침
 
 ## 5단계 임상 추론 프로세스 (JSON 출력 전 내부적으로 수행)
 
@@ -1287,7 +1323,8 @@ rationale 마지막 문장에 반드시 다음 형식으로 감별 포인트 1�
   },
   "rationale": "처방 근거 2-3문장 (오행 상생상극 원리 + 환자 증상 직접 연결)",
   "caution": "주의사항 또는 null",
-  "confidence": "high 또는 medium 또는 low"
+  "confidence": "high 또는 medium 또는 low",
+  "clinical_narrative": "【상세 임상 처방 해설】\\n\\n**1. 사암침 처방 해설**\\n각 혈위별 선택 근거, 보사법 원리, 오행 상생·상극 관계 설명 (각 혈위 1-2문장씩)\\n\\n**2. 동씨침 처방 해설**\\n각 혈위의 상응 원리, 자침 방법, 특효 임상 적응증, 예상 효과 (각 혈위 2-3문장씩)\\n\\n**3. 방혈 요혈 (해당시)**\\n방혈 혈위명, 적응증, 방혈량 기준\\n\\n**4. 실전 시술 순서**\\n1단계: ... → 2단계: ... → 3단계: ... → 4단계: ...\\n\\n**5. 동기침법 안내**\\n침 유침 중 환자에게 시행할 동작 또는 이미지 유도 방법\\n\\n**6. 임상 가감 질문**\\n처방 최적화를 위해 추가로 확인해야 할 3-5개 질문 (맥상, 이환기간, 동반증상 등)"
 }
 \`\`\`
 
@@ -1304,7 +1341,8 @@ rationale 마지막 문장에 반드시 다음 형식으로 감별 포인트 1�
 10. 동씨침(董氏針) 특효혈 병용 필수: tung_acupuncture.points 배열에 반드시 1개 이상 포함. 동씨침 참조표에서 주증상에 맞는 특효혈 선택. 빈 배열 반환 절대 금지.
 11. 동씨침 코드는 동씨침 번호 체계(예: 88.17, 22.05, PC8)로 표기. 사암침 WHO 코드와 혼용 금지.
 12. treatment_principle: 치료 원칙을 한자 병기 포함 2-4개 키워드로 표현 (예: 거풍산한(祛風散寒)·활혈통락(活血通絡)·진통소서(鎭痛消舒)). 반드시 포함.
-13. secondary_treatment.points: 정경(14경락) 상용 혈 2-4개 포함. 주증상에 맞는 WHO 코드 기준 혈위 (합곡LI4, 태충LR3, 양릉천GB34, 족삼리ST36, 삼음교SP6, 혈해SP10, 태계KD3 등). 빈 배열 지양.`;
+13. secondary_treatment.points: 정경(14경락) 상용 혈 2-4개 포함. 주증상에 맞는 WHO 코드 기준 혈위 (합곡LI4, 태충LR3, 양릉천GB34, 족삼리ST36, 삼음교SP6, 혈해SP10, 태계KD3 등). 빈 배열 지양.
+14. clinical_narrative: 반드시 400자 이상의 상세 임상 해설 작성. 각 혈위별 선택 근거·자침 방법·임상 응용, 실전 시술 순서(1-4단계), 동기침법, 임상 가감 질문 포함. 빈 문자열 절대 금지.`;
 
 // Meridian hints (mirrors Python _MERIDIAN_HINTS)
 const MERIDIAN_HINTS: [string[], string][] = [
@@ -1331,8 +1369,8 @@ const TUNG_HINTS: [string[], string][] = [
     "동씨침: 영골(22.05)+대백(22.06) 사법 (건측 수배 자침)"],
   [["하지 부종", "양말 자국", "다리 붓기", "발목 부종"],
     "동씨침: 사화중(88.12)+사화외(88.13) 보법"],
-  [["발뒤꿈치", "족저", "뒤꿈치"],
-    "동씨침: 중백(22.06)+하백(22.07) 보법 또는 하삼황(88.17-88.19)"],
+  [["발뒤꿈치", "족저", "뒤꿈치", "족근통", "아킬레스"],
+    "동씨침: 오호5혈(11.27) 1순위 (손등 제5중수골 기저 → 족근 상응), 골관(77.01)+목관(77.02) 병행 (골병·근병 구별), 급성이면 오호4·5+소절(11.26-27+22.04), 만성 4개월+이면 화전(22.01)+폐심(22.02), 수족상대로 대릉(PC7) 추가, 아킬레스건이면 정근(1010.01)+정종(1010.02)"],
   [["기침", "가래", "코막힘"],
     "동씨침: 오호(11.27) 보/사"],
   [["간경", "눈 충혈", "눈 건조", "협늑"],
@@ -1453,27 +1491,32 @@ export default {
 
       const userPrompt = buildUserPrompt(patient);
 
-      const geminiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${env.GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            system_instruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
-            contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-            generationConfig: {
-              responseMimeType: "application/json",
-              temperature: 0.3,
-              candidateCount: 1,
-            },
-          }),
-        }
-      );
+      const geminiBody = JSON.stringify({
+        system_instruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.3,
+          candidateCount: 1,
+        },
+      });
 
-      if (!geminiRes.ok) {
-        const errText = await geminiRes.text();
+      let geminiRes: Response | null = null;
+      let lastErrText = "";
+      for (let attempt = 0; attempt < 3; attempt++) {
+        if (attempt > 0) await new Promise((r) => setTimeout(r, attempt * 2000));
+        geminiRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${env.GEMINI_API_KEY}`,
+          { method: "POST", headers: { "Content-Type": "application/json" }, body: geminiBody }
+        );
+        if (geminiRes.ok) break;
+        lastErrText = await geminiRes.text();
+        if (geminiRes.status !== 503 && geminiRes.status !== 429) break;
+      }
+
+      if (!geminiRes!.ok) {
         return Response.json(
-          { detail: `Gemini API error: ${errText}` },
+          { detail: `Gemini API error: ${lastErrText}` },
           { status: 502, headers: CORS_HEADERS }
         );
       }
