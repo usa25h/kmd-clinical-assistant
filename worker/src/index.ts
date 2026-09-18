@@ -3380,6 +3380,13 @@ export default {
     }
 
     if (url.pathname === "/prescription" && request.method === "POST") {
+      if (!env.GEMINI_API_KEY) {
+        return Response.json(
+          { detail: "Service misconfigured: API key not set" },
+          { status: 503, headers: CORS_HEADERS }
+        );
+      }
+
       let patient: PatientInput;
       try {
         patient = await request.json<PatientInput>();
@@ -3390,11 +3397,27 @@ export default {
         );
       }
 
-      if (!patient.age || !patient.gender || !patient.symptom) {
+      const age = Number(patient.age);
+      if (!age || age < 1 || age > 120 || !patient.gender || !patient.symptom?.trim()) {
         return Response.json(
-          { detail: "age, gender, symptom are required" },
+          { detail: "age(1-120), gender, symptom are required" },
           { status: 422, headers: CORS_HEADERS }
         );
+      }
+      patient.age = age;
+
+      const MAX_LEN = { symptom: 500, additional_notes: 1000, pulse: 200, tongue: 200, duration: 100 };
+      if (patient.symptom.length > MAX_LEN.symptom) {
+        return Response.json({ detail: `symptom must be ≤ ${MAX_LEN.symptom} chars` }, { status: 422, headers: CORS_HEADERS });
+      }
+      if (patient.additional_notes && patient.additional_notes.length > MAX_LEN.additional_notes) {
+        patient.additional_notes = patient.additional_notes.slice(0, MAX_LEN.additional_notes);
+      }
+      if (patient.pulse && patient.pulse.length > MAX_LEN.pulse) patient.pulse = patient.pulse.slice(0, MAX_LEN.pulse);
+      if (patient.tongue && patient.tongue.length > MAX_LEN.tongue) patient.tongue = patient.tongue.slice(0, MAX_LEN.tongue);
+      if (patient.duration && patient.duration.length > MAX_LEN.duration) patient.duration = patient.duration.slice(0, MAX_LEN.duration);
+      if (patient.secondary_symptoms) {
+        patient.secondary_symptoms = patient.secondary_symptoms.slice(0, 10).map((s) => s.slice(0, 100));
       }
 
       const userPrompt = buildUserPrompt(patient);
@@ -3423,8 +3446,12 @@ export default {
       }
 
       if (!geminiRes!.ok) {
+        const statusCode = geminiRes!.status;
+        const clientMsg = statusCode === 429
+          ? "요청이 너무 많습니다. 잠시 후 다시 시도하세요."
+          : "처방 생성 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도하세요.";
         return Response.json(
-          { detail: `Gemini API error: ${lastErrText}` },
+          { detail: clientMsg },
           { status: 502, headers: CORS_HEADERS }
         );
       }
