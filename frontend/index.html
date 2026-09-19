@@ -189,6 +189,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .quick-nav-btn{background:#f1f5f9;border:none;border-radius:6px;padding:4px 10px;font-size:11.5px;color:var(--sub);cursor:pointer;transition:.15s}
 .quick-nav-btn:hover{background:var(--teal-chip);color:var(--teal-chip-t)}
 
+/* ── FEEDBACK BANNER ── */
+.feedback-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1.5px solid #86efac;border-radius:12px;padding:14px 18px;margin-top:20px;flex-wrap:wrap}
+.feedback-banner span{font-size:13px;color:#166534;font-weight:500}
+.feedback-banner a{white-space:nowrap;background:#16a34a;color:#fff;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;text-decoration:none;transition:.15s}
+.feedback-banner a:hover{background:#15803d}
+
 /* ── NAV BUTTONS ── */
 .nav-bar{display:flex;justify-content:space-between;align-items:center;margin-top:24px;gap:12px}
 .btn{padding:11px 22px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:.15s;display:inline-flex;align-items:center;gap:6px}
@@ -832,6 +838,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     </div>
   </div>
 
+  <div class="feedback-banner" id="feedbackBanner">
+    <span id="feedbackText">💬 베타 사용자 피드백을 남겨주시면 1개월 무료 이용권을 드립니다.</span>
+    <a id="feedbackLink" href="https://forms.gle/PLACEHOLDER" target="_blank" rel="noopener" id="feedbackBtn">피드백 남기기 →</a>
+  </div>
   <div class="nav-bar" id="resultNav" style="display:none">
     <button class="btn btn-ghost" onclick="goStep(4)" data-i18n="btnPrevS5">← 이전: 설-맥진</button>
     <button class="btn btn-primary" onclick="submitPrescription()" data-i18n="btnReprescribe">↺ 재처방 생성</button>
@@ -1280,6 +1290,7 @@ const TRANSLATIONS = {
     btnNext: '다음 →', btnPrev: '← 이전', btnPrescribe: '침 처방 결과 보기 →',
     btnInstant: '⚡ 즉석 처방 생성 (단계 건너뛰기) →',
     btnReset: '↺ 새 환자 진료 시작', btnReprescribe: '↺ 재처방 생성',
+    feedbackText: '💬 베타 사용자 피드백을 남겨주시면 1개월 무료 이용권을 드립니다.', feedbackBtn: '피드백 남기기 →',
     ccPh: '예: 70대 남성, 양측 고관절 및 둔부 통증이 10개월째 지속...',
     emptyText: '환자 정보를 입력하고 처방 생성을 눌러주세요',
     s1Badge: '⚕ STEP 1. 환자 기초 계측', s2Badge: '🫀 STEP 2. 신체 탭 (3-View)',
@@ -1393,6 +1404,7 @@ const TRANSLATIONS = {
     catChips: ['Head', 'Neck', 'Chest', 'Abdomen', 'Low Back', 'Foot/Toes', 'Face/ENT', 'Musculo', 'Uro-Gyn', 'Systemic', 'Gynecol.', 'Pediatric'],
     pulseDepthLabels: ['Very superficial','Superficial','Slightly superficial','Slightly superficial','Moderate','Middle (normal)','Slightly deep','Slightly deep','Deep','Very deep','Extremely deep'],
     pulseRateLabels: ['Very slow','Slow','Slow-moderate','Moderate','Moderate','Normal (平)','Slightly rapid','Rapid','Rapid','Very rapid','Extremely rapid'],
+    feedbackText: '💬 Leave beta feedback and get 1 month free access.', feedbackBtn: 'Give Feedback →',
   },
   zh: {
     noData: '不储存个人身份信息',
@@ -1463,6 +1475,7 @@ const TRANSLATIONS = {
     catChips: ['头部', '颈部', '胸部', '腹部', '腰部', '足部', '面部/耳鼻', '筋骨', '泌尿生殖', '全身气血', '妇科', '儿科'],
     pulseDepthLabels: ['极浮','浮','略浮','略浮','中浮','中等 (正常)','略沉','略沉','沉','极沉','最沉'],
     pulseRateLabels: ['极迟','迟','略迟','略缓','略缓','平脉 (正常)','略数','数','数脉','极数','最数'],
+    feedbackText: '💬 留下测试反馈，即可获得1个月免费使用权。', feedbackBtn: '提交反馈 →',
   }
 };
 let currentLang = 'ko';
@@ -1559,6 +1572,9 @@ function setLang(lang) {
   // Pulse sliders (re-render)
   updateSlider(document.getElementById('pulseDepth'),'pulseDepthVal');
   updateSlider(document.getElementById('pulseRate'),'pulseRateVal');
+  // Feedback banner
+  const ftEl = document.getElementById('feedbackText'); if (ftEl && t.feedbackText) ftEl.textContent = t.feedbackText;
+  const fbEl = document.getElementById('feedbackLink'); if (fbEl && t.feedbackBtn) fbEl.textContent = t.feedbackBtn;
 }
 
 // Init lang from storage
