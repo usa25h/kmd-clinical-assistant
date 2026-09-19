@@ -4557,7 +4557,6 @@ export default {
         },
       });
 
-      const keyDebug = env.GEMINI_API_KEY ? `len=${env.GEMINI_API_KEY.length},prefix=${env.GEMINI_API_KEY.substring(0,6)}` : "MISSING";
       const isBearer = false;
       const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${env.GEMINI_API_KEY}`;
       const RETRY_DELAYS = [2000, 5000, 10000, 20000, 30000];
@@ -4582,7 +4581,7 @@ export default {
         if (status === 429) userMsg = "Gemini API 일일 쿼터 초과 — Google AI Studio에서 유료 플랜 활성화 필요 (aistudio.google.com)";
         else if (status === 503) userMsg = "Gemini API 일시 과부하 — 잠시 후 재시도하세요";
         return Response.json(
-          { detail: userMsg, debug: `status=${status}`, keyDebug },
+          { detail: userMsg, debug: `status=${status}` },
           { status: 502, headers: CORS_HEADERS }
         );
       }
