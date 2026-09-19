@@ -241,9 +241,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .license-sub{font-size:12.5px;color:var(--muted);text-align:center;margin-bottom:24px;line-height:1.6}
 .license-field{margin-bottom:16px}
 .license-field label{font-size:12px;font-weight:700;color:var(--sub);display:block;margin-bottom:6px}
-.license-field input{border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-size:14px;color:var(--text);width:100%;outline:none;font-family:inherit;transition:.15s}
-.license-field input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(27,76,62,.1)}
-.license-field input.error{border-color:#dc2626}
+.license-field input,.license-field select{border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-size:14px;color:var(--text);width:100%;outline:none;font-family:inherit;transition:.15s;background:#fff;appearance:auto}
+.license-field input:focus,.license-field select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(27,76,62,.1)}
+.license-field input.error,.license-field select.error{border-color:#dc2626}
 .license-disclaimer{font-size:11px;color:var(--muted);background:#f8fafc;border-radius:8px;padding:10px 14px;margin-bottom:20px;line-height:1.7}
 .license-btn{width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:.15s}
 .license-btn:hover{background:var(--primary-h)}
@@ -269,7 +269,24 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <div class="license-title">KMD Clinical Assistant</div>
     <div class="license-sub">사암침법·동씨침법 임상 처방 시스템<br>한의사 면허 인증 후 이용하실 수 있습니다.</div>
     <div class="license-field">
-      <label>한의사 면허 번호 (KMD License No.)</label>
+      <label id="licenseCountryLabel">국가 (Country)</label>
+      <select id="licenseCountry" onchange="onCountryChange()">
+        <option value="">-- 국가 선택 / Select Country --</option>
+        <option value="KR">🇰🇷 대한민국 (Korea)</option>
+        <option value="US">🇺🇸 미국 (USA)</option>
+        <option value="CA">🇨🇦 캐나다 (Canada)</option>
+        <option value="AU">🇦🇺 호주 (Australia)</option>
+        <option value="NZ">🇳🇿 뉴질랜드 (New Zealand)</option>
+        <option value="GB">🇬🇧 영국 (UK)</option>
+        <option value="DE">🇩🇪 독일 (Germany)</option>
+        <option value="CN">🇨🇳 중국 (China)</option>
+        <option value="JP">🇯🇵 일본 (Japan)</option>
+        <option value="SG">🇸🇬 싱가포르 (Singapore)</option>
+        <option value="OTHER">🌐 기타 (Other)</option>
+      </select>
+    </div>
+    <div class="license-field">
+      <label id="licenseNumLabel">면허 번호 (License No.)</label>
       <input type="text" id="licenseNum" placeholder="예: 제12345호" autocomplete="off">
     </div>
     <div class="license-field">
@@ -833,34 +850,57 @@ let currentStep = 1;
     const saved = JSON.parse(localStorage.getItem('kmd_license') || 'null');
     if (saved && saved.num && saved.name) {
       document.getElementById('licenseOverlay').classList.add('hidden');
-      updateHeaderLicense(saved.name, saved.num);
+      updateHeaderLicense(saved.name, saved.num, saved.country || '');
       return;
     }
   } catch(e) {}
   document.getElementById('licenseOverlay').classList.remove('hidden');
 })();
 
+const COUNTRY_PLACEHOLDERS = {
+  KR:'예: 제12345호', US:'e.g. L.Ac. 12345', CA:'e.g. R.Ac. 12345',
+  AU:'e.g. AHPRA 12345', NZ:'e.g. NZ Reg. 12345', GB:'e.g. CNHC 12345',
+  DE:'e.g. DE-Lic. 12345', CN:'e.g. 执照 12345', JP:'e.g. 免許 12345',
+  SG:'e.g. TCM Reg. 12345', OTHER:'License No.'
+};
+const COUNTRY_FLAGS = {
+  KR:'🇰🇷', US:'🇺🇸', CA:'🇨🇦', AU:'🇦🇺', NZ:'🇳🇿',
+  GB:'🇬🇧', DE:'🇩🇪', CN:'🇨🇳', JP:'🇯🇵', SG:'🇸🇬', OTHER:'🌐'
+};
+function onCountryChange() {
+  const c = document.getElementById('licenseCountry').value;
+  if (c && COUNTRY_PLACEHOLDERS[c]) {
+    document.getElementById('licenseNum').placeholder = COUNTRY_PLACEHOLDERS[c];
+  }
+  document.getElementById('licenseCountry').classList.remove('error');
+}
+
 function submitLicense() {
+  const country = document.getElementById('licenseCountry').value;
   const num  = document.getElementById('licenseNum').value.trim();
   const name = document.getElementById('licenseName').value.trim();
+  document.getElementById('licenseCountry').classList.remove('error');
   document.getElementById('licenseNum').classList.remove('error');
   document.getElementById('licenseName').classList.remove('error');
   let ok = true;
+  if (!country) { document.getElementById('licenseCountry').classList.add('error'); ok = false; }
   if (!num) { document.getElementById('licenseNum').classList.add('error'); ok = false; }
   if (!name) { document.getElementById('licenseName').classList.add('error'); ok = false; }
   if (!ok) return;
-  try { localStorage.setItem('kmd_license', JSON.stringify({num, name})); } catch(e) {}
+  try { localStorage.setItem('kmd_license', JSON.stringify({country, num, name})); } catch(e) {}
   document.getElementById('licenseOverlay').classList.add('hidden');
-  updateHeaderLicense(name, num);
+  updateHeaderLicense(name, num, country);
 }
 
-function updateHeaderLicense(name, num) {
+function updateHeaderLicense(name, num, country) {
   const el = document.querySelector('.hd-right');
-  if (el) el.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> ${name} 원장 &nbsp;|&nbsp; 면허 ${num} &nbsp;<button onclick="clearLicense()" style="background:rgba(255,255,255,.12);border:none;color:#94a3b8;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer">재인증</button>`;
+  const flag = (country && COUNTRY_FLAGS[country]) ? COUNTRY_FLAGS[country] : '';
+  if (el) el.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> ${flag} ${name} &nbsp;|&nbsp; No. ${num} &nbsp;<button onclick="clearLicense()" style="background:rgba(255,255,255,.12);border:none;color:#94a3b8;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer">재인증</button>`;
 }
 
 function clearLicense() {
   try { localStorage.removeItem('kmd_license'); } catch(e) {}
+  document.getElementById('licenseCountry').value = '';
   document.getElementById('licenseNum').value = '';
   document.getElementById('licenseName').value = '';
   document.getElementById('licenseOverlay').classList.remove('hidden');
@@ -1205,7 +1245,8 @@ const TRANSLATIONS = {
     step1: '기본정보', step2: '신체 탭 (3-View)', step3: '문진', step4: '설-맥진', step5: '침 처방 결과',
     licenseTitle: 'KMD Clinical Assistant',
     licenseSub: '사암침법·동씨침법 임상 처방 시스템<br>한의사 면허 인증 후 이용하실 수 있습니다.',
-    licenseNumLabel: '한의사 면허 번호 (KMD License No.)',
+    licenseCountryLabel: '국가 (Country)',
+    licenseNumLabel: '면허 번호 (License No.)',
     licenseNumPh: '예: 제12345호',
     licenseNameLabel: '성명 (Full Name)',
     licenseNamePh: '예: 홍길동',
@@ -1232,7 +1273,8 @@ const TRANSLATIONS = {
     step1: 'Basic Info', step2: 'Body Map', step3: 'Symptoms', step4: 'Tongue & Pulse', step5: 'Prescription',
     licenseTitle: 'KMD Clinical Assistant',
     licenseSub: 'Saam & Tung Acupuncture Clinical System<br>Licensed acupuncturist verification required.',
-    licenseNumLabel: 'License Number (KMD / L.Ac. / OMD)',
+    licenseCountryLabel: 'Country',
+    licenseNumLabel: 'License No.',
     licenseNumPh: 'e.g. L.Ac. 12345',
     licenseNameLabel: 'Full Name',
     licenseNamePh: 'e.g. John Kim',
@@ -1259,7 +1301,8 @@ const TRANSLATIONS = {
     step1: '基本信息', step2: '身体图谱', step3: '问诊', step4: '舌诊·脉诊', step5: '针灸处方',
     licenseTitle: 'KMD 临床助理',
     licenseSub: '舍岩针法·董氏针法临床处方系统<br>请输入执照信息后使用。',
-    licenseNumLabel: '针灸执照编号',
+    licenseCountryLabel: '国家',
+    licenseNumLabel: '执照编号 (License No.)',
     licenseNumPh: '例: 执照 No. 12345',
     licenseNameLabel: '姓名',
     licenseNamePh: '例: 金医师',
@@ -1305,9 +1348,10 @@ function setLang(lang) {
   if (ht) ht.textContent = t.hdrTitle;
   // License modal
   document.querySelector('.license-sub').innerHTML = t.licenseSub;
-  document.querySelectorAll('.license-field label')[0].textContent = t.licenseNumLabel;
+  document.getElementById('licenseCountryLabel').textContent = t.licenseCountryLabel;
+  document.getElementById('licenseNumLabel').textContent = t.licenseNumLabel;
   document.getElementById('licenseNum').placeholder = t.licenseNumPh;
-  document.querySelectorAll('.license-field label')[1].textContent = t.licenseNameLabel;
+  document.querySelectorAll('.license-field label')[2].textContent = t.licenseNameLabel;
   document.getElementById('licenseName').placeholder = t.licenseNamePh;
   document.querySelector('.license-disclaimer').innerHTML = t.licenseDisclaimer;
   document.querySelector('.license-btn').textContent = t.licenseBtn;
