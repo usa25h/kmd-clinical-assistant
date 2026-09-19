@@ -4558,19 +4558,15 @@ export default {
       });
 
       const keyDebug = env.GEMINI_API_KEY ? `len=${env.GEMINI_API_KEY.length},prefix=${env.GEMINI_API_KEY.substring(0,6)}` : "MISSING";
-      const isBearer = env.GEMINI_API_KEY?.startsWith("AQ.");
-      const GEMINI_URL = isBearer
-        ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent`
-        : `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${env.GEMINI_API_KEY}`;
+      const isBearer = false;
+      const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${env.GEMINI_API_KEY}`;
       const RETRY_DELAYS = [2000, 5000, 10000, 20000, 30000];
       let geminiRes: Response | null = null;
 
       for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt++) {
         geminiRes = await fetch(GEMINI_URL, {
           method: "POST",
-          headers: isBearer
-            ? { "Content-Type": "application/json", "Authorization": `Bearer ${env.GEMINI_API_KEY}` }
-            : { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json" },
           body: geminiBody,
         });
         if (geminiRes.ok) break;
