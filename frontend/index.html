@@ -226,6 +226,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .mt12{margin-top:12px}
 .note{font-size:11px;color:var(--muted);margin-top:6px}
 
+/* ── LANG SWITCHER ── */
+.lang-sw{display:flex;gap:2px;align-items:center}
+.lang-btn{background:rgba(255,255,255,.1);border:none;color:#94a3b8;border-radius:5px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer;transition:.15s;letter-spacing:.04em}
+.lang-btn:hover{background:rgba(255,255,255,.2);color:#e2e8f0}
+.lang-btn.active{background:var(--primary);color:#fff}
+
 /* ── LICENSE MODAL ── */
 .license-overlay{display:flex;position:fixed;inset:0;background:rgba(13,31,45,.92);z-index:9999;align-items:center;justify-content:center;padding:20px}
 .license-overlay.hidden{display:none}
@@ -298,28 +304,35 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       <div class="hd-title">침 처방 Assistant</div>
     </div>
   </div>
-  <div class="hd-right">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-    개인식별정보 미저장 (안심 세션)
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="lang-sw">
+      <button class="lang-btn active" onclick="setLang('ko')">한</button>
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('zh')">中</button>
+    </div>
+    <div class="hd-right" id="hd-right-info">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span data-i18n="noData">개인식별정보 미저장</span>
+    </div>
   </div>
 </header>
 
 <!-- STEP NAV -->
 <nav class="step-nav">
   <button class="step-btn active" data-step="1" onclick="goStep(1)">
-    <span class="snum">1</span> 기본정보
+    <span class="snum">1</span> <span data-i18n="step1">기본정보</span>
   </button>
   <button class="step-btn" data-step="2" onclick="goStep(2)">
-    <span class="snum">2</span> 신체 탭 (3-View)
+    <span class="snum">2</span> <span data-i18n="step2">신체 탭 (3-View)</span>
   </button>
   <button class="step-btn" data-step="3" onclick="goStep(3)">
-    <span class="snum">3</span> 문진
+    <span class="snum">3</span> <span data-i18n="step3">문진</span>
   </button>
   <button class="step-btn" data-step="4" onclick="goStep(4)">
-    <span class="snum">4</span> 설-맥진
+    <span class="snum">4</span> <span data-i18n="step4">설-맥진</span>
   </button>
   <button class="step-btn" data-step="5" onclick="goStep(5)">
-    <span class="snum">5</span> 침 처방 결과
+    <span class="snum">5</span> <span data-i18n="step5">침 처방 결과</span>
   </button>
 </nav>
 
@@ -1184,6 +1197,142 @@ function renderResult(data) {
 
   document.getElementById('resultArea').innerHTML = html;
 }
+
+/* ── i18n ── */
+const TRANSLATIONS = {
+  ko: {
+    noData: '개인식별정보 미저장',
+    step1: '기본정보', step2: '신체 탭 (3-View)', step3: '문진', step4: '설-맥진', step5: '침 처방 결과',
+    licenseTitle: 'KMD Clinical Assistant',
+    licenseSub: '사암침법·동씨침법 임상 처방 시스템<br>한의사 면허 인증 후 이용하실 수 있습니다.',
+    licenseNumLabel: '한의사 면허 번호 (KMD License No.)',
+    licenseNumPh: '예: 제12345호',
+    licenseNameLabel: '성명 (Full Name)',
+    licenseNamePh: '예: 홍길동',
+    licenseDisclaimer: '※ 본 시스템은 대한한의사협회 정회원 및 면허 소지 한의사 전용입니다.<br>입력 정보는 기기에만 저장되며 외부로 전송되지 않습니다.<br>임상 처방은 면허 한의사의 최종 판단 하에 적용하시기 바랍니다.',
+    licenseBtn: '면허 인증 후 시작하기 →',
+    licenseBadge: '인증 정보는 이 기기에만 보관됩니다',
+    spinnerText: '사암침 + 동씨침 처방 생성 중...',
+    hdrTitle: '침 처방 Assistant',
+    s1Title: '기본 정보를 입력해 주세요',
+    s1Sub: '※ 환자의 이름, 전화번호, 주민번호 등 개인식별정보는 절대 입력하지 않습니다.',
+    s2Title: '통증 부위를 선택해 주세요',
+    s2Sub: '부위를 분류 탭에서 선택하거나 신체도를 직접 클릭하세요.',
+    s3Title: '증상을 조금 더 알려주세요',
+    s3Sub: '선택사항입니다. 필요한 항목만 체크하거나 하단에 직접 입력하세요.',
+    s4Title: '설진과 맥진을 선택하세요',
+    s4Sub: '임상에서 중요한 특이사항이 없다면 항목을 체크하고 바로 처방 결과로 이동해도 좋습니다.',
+    btnNext: '다음 →', btnPrev: '← 이전', btnPrescribe: '침 처방 결과 보기 →',
+    btnInstant: '⚡ 즉석 처방 생성 (단계 건너뛰기) →',
+    btnReset: '↺ 새 환자 진료 시작', btnReprescribe: '↺ 재처방 생성',
+    ccPh: '예: 70대 남성, 양측 고관절 및 둔부 통증이 10개월째 지속...',
+  },
+  en: {
+    noData: 'No personal data stored',
+    step1: 'Basic Info', step2: 'Body Map', step3: 'Symptoms', step4: 'Tongue & Pulse', step5: 'Prescription',
+    licenseTitle: 'KMD Clinical Assistant',
+    licenseSub: 'Saam & Tung Acupuncture Clinical System<br>Licensed acupuncturist verification required.',
+    licenseNumLabel: 'License Number (KMD / L.Ac. / OMD)',
+    licenseNumPh: 'e.g. L.Ac. 12345',
+    licenseNameLabel: 'Full Name',
+    licenseNamePh: 'e.g. John Kim',
+    licenseDisclaimer: '※ This system is for licensed acupuncturists only.<br>Your credentials are stored locally and never transmitted.<br>All prescriptions require practitioner clinical judgment.',
+    licenseBtn: 'Verify & Enter →',
+    licenseBadge: 'Credentials stored on this device only',
+    spinnerText: 'Generating Saam + Tung prescription...',
+    hdrTitle: 'Acupuncture Prescription',
+    s1Title: 'Enter Patient Information',
+    s1Sub: '※ Do NOT enter identifying information (name, SSN, phone number).',
+    s2Title: 'Select Pain Location',
+    s2Sub: 'Select from category tabs or click directly on the body diagram.',
+    s3Title: 'Tell Us More About the Symptoms',
+    s3Sub: 'Optional. Check relevant items or type notes below.',
+    s4Title: 'Tongue & Pulse Diagnosis',
+    s4Sub: 'Skip items not observed. Proceed to results when ready.',
+    btnNext: 'Next →', btnPrev: '← Back', btnPrescribe: 'Generate Prescription →',
+    btnInstant: '⚡ Quick Prescription (Skip Steps) →',
+    btnReset: '↺ New Patient', btnReprescribe: '↺ Re-generate',
+    ccPh: 'e.g. 70M, bilateral hip & gluteal pain x 10 months, worse with walking, R>L...',
+  },
+  zh: {
+    noData: '不储存个人身份信息',
+    step1: '基本信息', step2: '身体图谱', step3: '问诊', step4: '舌诊·脉诊', step5: '针灸处方',
+    licenseTitle: 'KMD 临床助理',
+    licenseSub: '舍岩针法·董氏针法临床处方系统<br>请输入执照信息后使用。',
+    licenseNumLabel: '针灸执照编号',
+    licenseNumPh: '例: 执照 No. 12345',
+    licenseNameLabel: '姓名',
+    licenseNamePh: '例: 金医师',
+    licenseDisclaimer: '※ 本系统仅供持有执照的针灸医师使用。<br>您的信息仅保存在本设备，不会传输至外部。<br>所有处方须由执照医师进行最终临床判断。',
+    licenseBtn: '验证并进入 →',
+    licenseBadge: '执照信息仅保存在本设备',
+    spinnerText: '舍岩针法 + 董氏针法处方生成中...',
+    hdrTitle: '针灸处方系统',
+    s1Title: '请输入患者基本信息',
+    s1Sub: '※ 请勿输入姓名、身份证号等个人识别信息。',
+    s2Title: '请选择疼痛部位',
+    s2Sub: '从分类标签中选择，或直接点击身体图谱。',
+    s3Title: '请详述症状',
+    s3Sub: '选填项目。勾选相关症状或在下方直接输入。',
+    s4Title: '舌诊与脉诊',
+    s4Sub: '未观察到的项目可跳过，准备好后直接进入处方结果。',
+    btnNext: '下一步 →', btnPrev: '← 上一步', btnPrescribe: '查看针灸处方 →',
+    btnInstant: '⚡ 快速处方（跳过步骤）→',
+    btnReset: '↺ 新患者诊疗', btnReprescribe: '↺ 重新生成',
+    ccPh: '例: 70岁男性，双侧髋关节及臀部疼痛持续10个月，行走时加重，右侧更重...',
+  }
+};
+let currentLang = 'ko';
+
+function setLang(lang) {
+  currentLang = lang;
+  try { localStorage.setItem('kmd_lang', lang); } catch(e) {}
+  const t = TRANSLATIONS[lang];
+  // Lang buttons
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  const map = {ko:0,en:1,zh:2};
+  document.querySelectorAll('.lang-btn')[map[lang]].classList.add('active');
+  // data-i18n elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n;
+    if (t[k] !== undefined) el.textContent = t[k];
+  });
+  // Spinner
+  const st = document.querySelector('.spinner-text');
+  if (st) st.textContent = t.spinnerText;
+  // Header title
+  const ht = document.querySelector('.hd-title');
+  if (ht) ht.textContent = t.hdrTitle;
+  // License modal
+  document.querySelector('.license-sub').innerHTML = t.licenseSub;
+  document.querySelectorAll('.license-field label')[0].textContent = t.licenseNumLabel;
+  document.getElementById('licenseNum').placeholder = t.licenseNumPh;
+  document.querySelectorAll('.license-field label')[1].textContent = t.licenseNameLabel;
+  document.getElementById('licenseName').placeholder = t.licenseNamePh;
+  document.querySelector('.license-disclaimer').innerHTML = t.licenseDisclaimer;
+  document.querySelector('.license-btn').textContent = t.licenseBtn;
+  const lb = document.querySelector('.license-badge');
+  if (lb) lb.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> ${t.licenseBadge}`;
+  // Chief complaint placeholder
+  const cc = document.getElementById('chiefComplaint');
+  if (cc) cc.placeholder = t.ccPh;
+  // Section titles (badge/title/sub per step)
+  const sectionTitles = document.querySelectorAll('.section-title');
+  const sectionSubs = document.querySelectorAll('.section-sub');
+  const titles = [t.s1Title, t.s2Title, t.s3Title, t.s4Title];
+  const subs = [t.s1Sub, t.s2Sub, t.s3Sub, t.s4Sub];
+  sectionTitles.forEach((el, i) => { if (titles[i]) el.textContent = titles[i]; });
+  sectionSubs.forEach((el, i) => { if (subs[i]) el.textContent = subs[i]; });
+}
+
+// Init lang from storage
+(function(){
+  try {
+    const saved = localStorage.getItem('kmd_lang');
+    if (saved && TRANSLATIONS[saved]) { setLang(saved); return; }
+  } catch(e) {}
+  setLang('ko');
+})();
 
 /* ── INSTANT PRESCRIBE SHOW/HIDE ── */
 document.getElementById('chiefComplaint').addEventListener('input', function() {
