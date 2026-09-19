@@ -4558,7 +4558,7 @@ export default {
       });
 
       const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${env.GEMINI_API_KEY}`;
-      const RETRY_DELAYS = [1000, 2000, 4000];
+      const RETRY_DELAYS = [2000, 5000, 10000, 20000, 30000];
       let geminiRes: Response | null = null;
 
       for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt++) {
