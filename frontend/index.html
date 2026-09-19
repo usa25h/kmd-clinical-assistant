@@ -954,7 +954,6 @@ function calcBMI() {
   st.textContent = bmiLabels[cls] || status;
   st.className = 'bmi-status ' + cls;
 }
-calcBMI();
 
 /* ── BODY DIAGRAM ── */
 function toggleZone(el, e) {
@@ -1015,8 +1014,6 @@ function updateSlider(el, valId) {
   document.getElementById(valId).textContent = labels[v];
   el.style.background = `linear-gradient(to right, var(--primary) ${v*10}%, #e2e8f0 ${v*10}%)`;
 }
-updateSlider(document.getElementById('pulseDepth'), 'pulseDepthVal');
-updateSlider(document.getElementById('pulseRate'), 'pulseRateVal');
 
 /* ── COLLECT DATA ── */
 function collectPayload() {
