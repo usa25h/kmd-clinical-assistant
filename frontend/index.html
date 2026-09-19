@@ -358,7 +358,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 <!-- ════════════════ STEP 1: 기본정보 ════════════════ -->
 <section class="step-panel active" id="panel1">
   <div class="section-header">
-    <div class="section-badge">⚕ STEP 1. 환자 기초 계측</div>
+    <div class="section-badge" id="s1Badge">⚕ STEP 1. 환자 기초 계측</div>
     <div class="section-title">기본 정보를 입력해 주세요</div>
     <div class="section-sub">※ 환자의 이름, 전화번호, 주민번호 등 개인식별정보는 절대 입력하지 않습니다.</div>
   </div>
@@ -366,33 +366,33 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   <div class="card">
     <div class="row2">
       <div class="field">
-        <label>연령 (Age)</label>
+        <label data-i18n="ageLabel">연령 (Age)</label>
         <input type="number" id="age" min="1" max="120" value="65" placeholder="예: 65">
       </div>
       <div class="field">
-        <label>성별 (Gender)</label>
+        <label data-i18n="genderLabel">성별 (Gender)</label>
         <div class="toggle-group mt4" id="genderGroup">
-          <button class="toggle-btn active" data-val="남성" onclick="setToggle('genderGroup',this,'남성')">남성</button>
-          <button class="toggle-btn" data-val="여성" onclick="setToggle('genderGroup',this,'여성')">여성</button>
-          <button class="toggle-btn" data-val="미지정" onclick="setToggle('genderGroup',this,'미지정')">미지정</button>
+          <button class="toggle-btn active" data-val="남성" onclick="setToggle('genderGroup',this,'남성')" data-i18n="genderM">남성</button>
+          <button class="toggle-btn" data-val="여성" onclick="setToggle('genderGroup',this,'여성')" data-i18n="genderF">여성</button>
+          <button class="toggle-btn" data-val="미지정" onclick="setToggle('genderGroup',this,'미지정')" data-i18n="genderU">미지정</button>
         </div>
       </div>
     </div>
   </div>
 
   <div class="card">
-    <div class="card-label">📏 신장 및 체중 (Height &amp; Weight)</div>
+    <div class="card-label" data-i18n="heightWeightLabel">📏 신장 및 체중 (Height &amp; Weight)</div>
     <div class="row3">
       <div class="field">
-        <label>키 (ft)</label>
+        <label data-i18n="htFtLabel">키 (ft)</label>
         <input type="number" id="ht-ft" min="1" max="8" value="5" oninput="calcBMI()">
       </div>
       <div class="field">
-        <label>추가 (inch)</label>
+        <label data-i18n="htInLabel">추가 (inch)</label>
         <input type="number" id="ht-in" min="0" max="11" value="8" oninput="calcBMI()">
       </div>
       <div class="field">
-        <label>체중 (lb)</label>
+        <label data-i18n="wtLbLabel">체중 (lb)</label>
         <input type="number" id="wt-lb" min="10" max="600" value="160" oninput="calcBMI()">
       </div>
     </div>
@@ -404,7 +404,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   </div>
 
   <div class="card">
-    <div class="card-label">🔖 체질 판별 (참고용)</div>
+    <div class="card-label" data-i18n="constitutionLabel">🔖 체질 판별 (참고용)</div>
     <div class="chip-group" id="constitutionGroup">
       <span class="chip" onclick="toggleChipSingle('constitutionGroup',this)">미론병 (소음/음체)</span>
       <span class="chip active" onclick="toggleChipSingle('constitutionGroup',this)">보통 (평체)</span>
@@ -415,17 +415,17 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   </div>
 
   <div class="card">
-    <div class="card-label">💬 증상 직접 서술 (선택 단계 건너뛰기 가능)</div>
+    <div class="card-label" data-i18n="ccLabel">💬 증상 직접 서술 (선택 단계 건너뛰기 가능)</div>
     <textarea id="chiefComplaint" placeholder="예: 70대 남성, 양측 고관절 및 둔부 통증이 10개월째 지속되고 보행 시 악화. 우측이 더 심하며 목욕하고 닦기가 달기는 느낌. 요즘 4-5발 협착증 기왕력."></textarea>
-    <div class="note">원하는 증상을 직접 입력하면 이후 단계를 건너뛰고 바로 처방을 생성할 수 있습니다.</div>
+    <div class="note" id="ccNoteEl">원하는 증상을 직접 입력하면 이후 단계를 건너뛰고 바로 처방을 생성할 수 있습니다.</div>
     <div id="instantPrescribeWrap" style="display:none;margin-top:12px">
-      <button class="btn btn-primary btn-full" onclick="submitPrescription()" style="background:#0d1f2d;font-size:15px;padding:14px">⚡ 즉석 처방 생성 (단계 건너뛰기) →</button>
+      <button class="btn btn-primary btn-full" onclick="submitPrescription()" style="background:#0d1f2d;font-size:15px;padding:14px" data-i18n="btnInstant">⚡ 즉석 처방 생성 (단계 건너뛰기) →</button>
     </div>
   </div>
 
   <div class="nav-bar">
     <div></div>
-    <button class="btn btn-primary" onclick="goStep(2)">
+    <button class="btn btn-primary" onclick="goStep(2)" data-i18n="btnNextS1">
       다음: 신체 탭 (3-View) 통증 부위 선택 →
     </button>
   </div>
@@ -434,13 +434,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 <!-- ════════════════ STEP 2: 신체 탭 ════════════════ -->
 <section class="step-panel" id="panel2">
   <div class="section-header">
-    <div class="section-badge">🫀 STEP 2. 신체 탭 (3-View)</div>
+    <div class="section-badge" id="s2Badge">🫀 STEP 2. 신체 탭 (3-View)</div>
     <div class="section-title">통증 부위를 선택해 주세요</div>
     <div class="section-sub">부위를 분류 탭에서 선택하거나 신체도를 직접 클릭하세요.</div>
   </div>
 
   <div class="card">
-    <div class="card-label">부위 분류 (12大門)</div>
+    <div class="card-label" data-i18n="bodyPartLabel">부위 분류 (12大門)</div>
     <div class="cat-grid" id="catGrid">
       <div class="cat-chip" data-cat="두부" onclick="toggleCat(this)"><span class="cat-kanji">首</span><span class="cat-ko">두부</span></div>
       <div class="cat-chip" data-cat="경부/항부" onclick="toggleCat(this)"><span class="cat-kanji">頸</span><span class="cat-ko">경부/항부</span></div>
@@ -459,9 +459,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 
   <div class="card">
     <div class="body-view-tabs">
-      <button class="bv-tab active" onclick="setBvTab(this,'front')">앞면 (정면)</button>
-      <button class="bv-tab" onclick="setBvTab(this,'back')">뒷면 (후면)</button>
-      <button class="bv-tab" onclick="setBvTab(this,'side')">옆면 (측면)</button>
+      <button class="bv-tab active" onclick="setBvTab(this,'front')" data-i18n="bvFront">앞면 (정면)</button>
+      <button class="bv-tab" onclick="setBvTab(this,'back')" data-i18n="bvBack">뒷면 (후면)</button>
+      <button class="bv-tab" onclick="setBvTab(this,'side')" data-i18n="bvSide">옆면 (측면)</button>
     </div>
     <div class="body-wrap">
       <div class="body-svg-wrap">
@@ -641,29 +641,29 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 
       </div>
       <div class="selected-list" style="padding-top:8px">
-        <div class="selected-title">선택된 통증 부위 (<span id="zoneCount">0</span>개)</div>
-        <div id="selectedZones"><div class="no-select">신체 부위를 클릭하여 통증 지점을 추가하세요.</div></div>
-        <div class="note mt8">부위를 선택하지 않고 다음 단계에서 직접 증상을 기술할 수도 있습니다</div>
+        <div class="selected-title" id="selectedTitle">선택된 통증 부위 (<span id="zoneCount">0</span><span id="zoneCountSuffix">개</span>)</div>
+        <div id="selectedZones"><div class="no-select" id="noSelectMsg">신체 부위를 클릭하여 통증 지점을 추가하세요.</div></div>
+        <div class="note mt8" id="zoneNoteEl">부위를 선택하지 않고 다음 단계에서 직접 증상을 기술할 수도 있습니다</div>
       </div>
     </div>
   </div>
 
   <div class="nav-bar">
-    <button class="btn btn-ghost" onclick="goStep(1)">← 이전: 기본정보</button>
-    <button class="btn btn-primary" onclick="goStep(3)">다음: 상세 문진 →</button>
+    <button class="btn btn-ghost" onclick="goStep(1)" data-i18n="btnPrevS2">← 이전: 기본정보</button>
+    <button class="btn btn-primary" onclick="goStep(3)" data-i18n="btnNextS2">다음: 상세 문진 →</button>
   </div>
 </section>
 
 <!-- ════════════════ STEP 3: 문진 ════════════════ -->
 <section class="step-panel" id="panel3">
   <div class="section-header">
-    <div class="section-badge">🔎 STEP 3. 상세 증상 문진</div>
+    <div class="section-badge" id="s3Badge">🔎 STEP 3. 상세 증상 문진</div>
     <div class="section-title">증상을 조금 더 알려주세요</div>
     <div class="section-sub">선택사항입니다. 필요한 항목만 체크하거나 하단에 직접 입력하세요.</div>
   </div>
 
   <div class="card">
-    <div class="card-label">통증의 좌우 편측 (Laterality)</div>
+    <div class="card-label" data-i18n="lateralityLabel">통증의 좌우 편측 (Laterality)</div>
     <div class="toggle-group" id="lateralityGroup">
       <button class="toggle-btn" data-val="좌측" onclick="setToggle('lateralityGroup',this,'좌측')">좌측 (Left)</button>
       <button class="toggle-btn" data-val="우측" onclick="setToggle('lateralityGroup',this,'우측')">우측 (Right)</button>
@@ -673,7 +673,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   </div>
 
   <div class="card">
-    <div class="card-label">유병 기간 (Duration)</div>
+    <div class="card-label" data-i18n="durationLabel">유병 기간 (Duration)</div>
     <div class="chip-group" id="durationGroup">
       <span class="chip" onclick="toggleChipSingle('durationGroup',this)">당일 급성</span>
       <span class="chip" onclick="toggleChipSingle('durationGroup',this)">3일 이내</span>
@@ -686,7 +686,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   </div>
 
   <div class="card">
-    <div class="card-label">주요 호소 증상 (복수 선택 가능)</div>
+    <div class="card-label" data-i18n="symptomsLabel">주요 호소 증상 (복수 선택 가능)</div>
     <div class="chip-group" id="symptomsGroup">
       <span class="chip" onclick="toggleChip(this)">극심한 관절통</span>
       <span class="chip" onclick="toggleChip(this)">뻐근한 근육통</span>
@@ -701,7 +701,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   </div>
 
   <div class="card">
-    <div class="card-label">통증 성질 및 감각 (Pain Quality)</div>
+    <div class="card-label" data-i18n="painQualityLabel">통증 성질 및 감각 (Pain Quality)</div>
     <div class="chip-group" id="painQualityGroup">
       <span class="chip" onclick="toggleChip(this)">욱씬거림</span>
       <span class="chip" onclick="toggleChip(this)">찌르는 통증</span>
@@ -715,7 +715,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   </div>
 
   <div class="card">
-    <div class="card-label">악화 및 완화 요인 (Aggravating Factors)</div>
+    <div class="card-label" data-i18n="aggravLabel">악화 및 완화 요인 (Aggravating Factors)</div>
     <div class="chip-group" id="aggravGroup">
       <span class="chip active" onclick="toggleChip(this)">움직일 때/보행 시 악화</span>
       <span class="chip" onclick="toggleChip(this)">오래 앉아있을 때 악화</span>
@@ -729,15 +729,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   </div>
 
   <div class="card">
-    <div class="card-label">추가 임상 소견 및 특이사항</div>
-    <textarea id="additionalNotes" placeholder="예: 야간에 심하여 수면 장애 동반. 운동회 시 호전되고 근 곳에 기면시 사라지는 경향. 이전 집 치료 시 생명골 치방 후 이전 집 호전된 병력."></textarea>
+    <div class="card-label" data-i18n="notesLabel">추가 임상 소견 및 특이사항</div>
+    <textarea id="additionalNotes" data-i18n-ph="notesPh" placeholder="예: 야간에 심하여 수면 장애 동반. 운동회 시 호전되고 근 곳에 기면시 사라지는 경향. 이전 집 치료 시 생명골 치방 후 이전 집 호전된 병력."></textarea>
   </div>
 
   <div class="nav-bar">
-    <button class="btn btn-ghost" onclick="goStep(2)">← 이전: 신체 탭</button>
+    <button class="btn btn-ghost" onclick="goStep(2)" data-i18n="btnPrevS3">← 이전: 신체 탭</button>
     <div style="display:flex;gap:10px">
-      <button class="btn btn-ghost" onclick="goStep(4)">설-맥진 바로 가기 →</button>
-      <button class="btn btn-primary" onclick="goStep(4)">다음: 설-맥진 →</button>
+      <button class="btn btn-ghost" onclick="goStep(4)" data-i18n="btnSkipS4">설-맥진 바로 가기 →</button>
+      <button class="btn btn-primary" onclick="goStep(4)" data-i18n="btnNextS3">다음: 설-맥진 →</button>
     </div>
   </div>
 </section>
@@ -745,13 +745,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 <!-- ════════════════ STEP 4: 설-맥진 ════════════════ -->
 <section class="step-panel" id="panel4">
   <div class="section-header">
-    <div class="section-badge">👅 STEP 4. 설-맥진</div>
+    <div class="section-badge" id="s4Badge">👅 STEP 4. 설-맥진</div>
     <div class="section-title">설진과 맥진을 선택하세요</div>
     <div class="section-sub">임상에서 중요한 특이사항이 없다면 항목을 체크하고 바로 처방 결과로 이동해도 좋습니다.</div>
   </div>
 
   <div class="card">
-    <div class="card-label">1. 설진 조건 (Tongue Diagnosis) &nbsp;<span style="font-size:10px;color:var(--muted);font-weight:400">다중 선택 가능</span></div>
+    <div class="card-label" id="tongueLabelEl">1. 설진 조건 (Tongue Diagnosis) &nbsp;<span id="tongueMulEl" style="font-size:10px;color:var(--muted);font-weight:400">다중 선택 가능</span></div>
     <div class="tongue-grid" id="tongueGrid">
       <div class="tongue-card active" onclick="toggleTongue(this)">
         <div class="tongue-name">담홍설 (淡紅色)</div>
@@ -793,19 +793,19 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   </div>
 
   <div class="card">
-    <div class="card-label">2. 맥진 소견 (Pulse Diagnosis)</div>
-    <div class="slider-wrap">
+    <div class="card-label" data-i18n="pulseLabel">2. 맥진 소견 (Pulse Diagnosis)</div>
+    <div class="slider-wrap" id="depthSliderWrap">
       <div class="slider-labels">
-        <span>浮脈 (부 — 겉/가벼운 탈)</span>
-        <span>沈脈 (침 — 깊이 눌러야 탈)</span>
+        <span id="pulseDepthL">浮脈 (부 — 겉/가벼운 탈)</span>
+        <span id="pulseDepthR">沈脈 (침 — 깊이 눌러야 탈)</span>
       </div>
       <input type="range" id="pulseDepth" min="0" max="10" value="5" oninput="updateSlider(this,'pulseDepthVal')">
       <div class="slider-val" id="pulseDepthVal">중간 (보통)</div>
     </div>
-    <div class="slider-wrap">
+    <div class="slider-wrap" id="rateSliderWrap">
       <div class="slider-labels">
-        <span>遲脈 (지 — 느린 탈)</span>
-        <span>數脈 (삭 — 빠른)</span>
+        <span id="pulseRateL">遲脈 (지 — 느린 탈)</span>
+        <span id="pulseRateR">數脈 (삭 — 빠른)</span>
       </div>
       <input type="range" id="pulseRate" min="0" max="10" value="5" oninput="updateSlider(this,'pulseRateVal')">
       <div class="slider-val" id="pulseRateVal">평맥 (보통)</div>
@@ -813,8 +813,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   </div>
 
   <div class="nav-bar">
-    <button class="btn btn-ghost" onclick="goStep(3)">← 이전: 상세 문진</button>
-    <button class="btn btn-primary" onclick="submitPrescription()">침 처방 결과 보기 →</button>
+    <button class="btn btn-ghost" onclick="goStep(3)" data-i18n="btnPrevS4">← 이전: 상세 문진</button>
+    <button class="btn btn-primary" onclick="submitPrescription()" data-i18n="btnPrescribe">침 처방 결과 보기 →</button>
   </div>
 </section>
 
@@ -822,19 +822,19 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 <section class="step-panel" id="panel5">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
     <div class="quick-nav" id="summaryBreadcrumb"></div>
-    <button class="btn btn-sm btn-ghost" onclick="resetForm()">↺ 새 환자 진료 시작</button>
+    <button class="btn btn-sm btn-ghost" onclick="resetForm()" data-i18n="btnReset">↺ 새 환자 진료 시작</button>
   </div>
 
   <div id="resultArea">
     <div class="empty-state">
       <div class="empty-icon">🫁</div>
-      <div class="empty-text">환자 정보를 입력하고 처방 생성을 눌러주세요</div>
+      <div class="empty-text" data-i18n="emptyText">환자 정보를 입력하고 처방 생성을 눌러주세요</div>
     </div>
   </div>
 
   <div class="nav-bar" id="resultNav" style="display:none">
-    <button class="btn btn-ghost" onclick="goStep(4)">← 이전: 설-맥진</button>
-    <button class="btn btn-primary" onclick="submitPrescription()">↺ 재처방 생성</button>
+    <button class="btn btn-ghost" onclick="goStep(4)" data-i18n="btnPrevS5">← 이전: 설-맥진</button>
+    <button class="btn btn-primary" onclick="submitPrescription()" data-i18n="btnReprescribe">↺ 재처방 생성</button>
   </div>
 </section>
 
@@ -947,9 +947,11 @@ function calcBMI() {
   else if(bmi<25){status='정상';cls='normal';}
   else if(bmi<30){status='과체중';cls='over';}
   else{status='비만';cls='over';}
-  document.getElementById('bmiText').textContent = `신장: ${cm}cm / ${kg}kg  ·  BMI 지수: ${bmi} kg/m²`;
+  const tb = TRANSLATIONS[currentLang] || TRANSLATIONS.ko;
+  document.getElementById('bmiText').textContent = `${tb.bmiPrefix}${cm}cm / ${kg}kg${tb.bmiSep}${bmi} kg/m²`;
+  const bmiLabels = {normal: tb.bmiNormal||'정상', over: tb.bmiOverweight||'과체중', obese: tb.bmiObese||'비만', under: tb.bmiUnder||'저체중'};
   const st = document.getElementById('bmiStatus');
-  st.textContent = status;
+  st.textContent = bmiLabels[cls] || status;
   st.className = 'bmi-status ' + cls;
 }
 calcBMI();
@@ -983,7 +985,8 @@ function renderSelectedZones() {
   document.getElementById('zoneCount').textContent = all.size;
   const container = document.getElementById('selectedZones');
   if (all.size === 0) {
-    container.innerHTML = '<div class="no-select">신체 부위를 클릭하여 통증 지점을 추가하세요.</div>';
+    const t = TRANSLATIONS[currentLang] || TRANSLATIONS.ko;
+    container.innerHTML = `<div class="no-select">${t.noSelectMsg}</div>`;
   } else {
     container.innerHTML = [...all].map(z =>
       `<span class="selected-tag">${z} <button onclick="removeZone('${z}')">×</button></span>`
@@ -1005,11 +1008,10 @@ function setBvTab(btn, view) {
 }
 
 /* ── SLIDERS ── */
-const pulseDepthLabels = ['부맥 (매우 浮)','부맥 (浮)','부중맥','부중맥','중맥','중간 (보통)','중침맥','중침맥','침맥','침맥 (沈)','침맥 (매우 沈)'];
-const pulseRateLabels  = ['지맥 (매우 遲)','지맥 (遲)','지완맥','완맥','완맥','평맥 (보통)','평삭맥','삭맥','삭맥 (數)','삭맥 (數)','삭맥 (매우 數)'];
 function updateSlider(el, valId) {
   const v = parseInt(el.value);
-  const labels = el.id === 'pulseDepth' ? pulseDepthLabels : pulseRateLabels;
+  const t = TRANSLATIONS[currentLang] || TRANSLATIONS.ko;
+  const labels = el.id === 'pulseDepth' ? t.pulseDepthLabels : t.pulseRateLabels;
   document.getElementById(valId).textContent = labels[v];
   el.style.background = `linear-gradient(to right, var(--primary) ${v*10}%, #e2e8f0 ${v*10}%)`;
 }
@@ -1025,7 +1027,15 @@ function collectPayload() {
   // Chief complaint
   const directText = document.getElementById('chiefComplaint').value.trim();
   const bodyZones = [...new Set([...selectedZones, ...selectedCats])];
-  const selSymptoms = [...document.querySelectorAll('#symptomsGroup .chip.active')].map(c=>c.textContent);
+  // Always send Korean values to backend regardless of display language
+  const KO = TRANSLATIONS.ko;
+  function koChip(groupId, chipKey) {
+    return [...document.querySelectorAll(`#${groupId} .chip.active`)].map(c => {
+      const all = [...document.querySelectorAll(`#${groupId} .chip`)];
+      return KO[chipKey][all.indexOf(c)] || c.textContent;
+    });
+  }
+  const selSymptoms = koChip('symptomsGroup','sympChips');
 
   let symptom = directText;
   if (!symptom && bodyZones.length > 0) symptom = bodyZones.join(', ') + ' 통증';
@@ -1035,27 +1045,34 @@ function collectPayload() {
   const latBtn = document.querySelector('#lateralityGroup .toggle-btn.active');
   const affectedSide = latBtn ? (latBtn.dataset.val || null) : null;
 
-  // Duration
-  const durChip = document.querySelector('#durationGroup .chip.active');
-  const duration = durChip ? durChip.textContent : null;
+  // Duration (Korean value)
+  const durActive = document.querySelector('#durationGroup .chip.active');
+  let duration = null;
+  if (durActive) {
+    const allDur = [...document.querySelectorAll('#durationGroup .chip')];
+    duration = KO.durChips[allDur.indexOf(durActive)] || durActive.textContent;
+  }
 
-  // Tongue
+  // Tongue (Korean names)
   const tongueCards = [...document.querySelectorAll('#tongueGrid .tongue-card.active')];
-  const tongue = tongueCards.map(c=>c.querySelector('.tongue-name').textContent).join(', ') || null;
+  const tongue = tongueCards.map(c => {
+    const allCards = [...document.querySelectorAll('#tongueGrid .tongue-card')];
+    return KO.tongueNames[allCards.indexOf(c)] || c.querySelector('.tongue-name').textContent;
+  }).join(', ') || null;
 
-  // Pulse
+  // Pulse (Korean labels)
   const depthV = parseInt(document.getElementById('pulseDepth').value);
   const rateV  = parseInt(document.getElementById('pulseRate').value);
-  const depthLabel = pulseDepthLabels[depthV];
-  const rateLabel  = pulseRateLabels[rateV];
+  const depthLabel = KO.pulseDepthLabels[depthV];
+  const rateLabel  = KO.pulseRateLabels[rateV];
   const pulse = (depthV !== 5 || rateV !== 5) ? `${depthLabel}, ${rateLabel}` : null;
 
-  // Pain quality + aggravation
-  const pqChips = [...document.querySelectorAll('#painQualityGroup .chip.active')].map(c=>c.textContent);
-  const agChips = [...document.querySelectorAll('#aggravGroup .chip.active')].map(c=>c.textContent);
+  // Pain quality + aggravation (Korean values)
+  const selPqChips = koChip('painQualityGroup','pqChips');
+  const selAgChips = koChip('aggravGroup','agChips');
   const additionalNotes = document.getElementById('additionalNotes').value.trim() || null;
 
-  const secSymptoms = [...selSymptoms, ...pqChips, ...agChips];
+  const secSymptoms = [...selSymptoms, ...selPqChips, ...selAgChips];
 
   const payload = { age, gender, symptom };
   if (affectedSide) payload.affected_side = affectedSide;
@@ -1267,6 +1284,48 @@ const TRANSLATIONS = {
     btnInstant: '⚡ 즉석 처방 생성 (단계 건너뛰기) →',
     btnReset: '↺ 새 환자 진료 시작', btnReprescribe: '↺ 재처방 생성',
     ccPh: '예: 70대 남성, 양측 고관절 및 둔부 통증이 10개월째 지속...',
+    emptyText: '환자 정보를 입력하고 처방 생성을 눌러주세요',
+    s1Badge: '⚕ STEP 1. 환자 기초 계측', s2Badge: '🫀 STEP 2. 신체 탭 (3-View)',
+    s3Badge: '🔎 STEP 3. 상세 증상 문진', s4Badge: '👅 STEP 4. 설-맥진',
+    ageLabel: '연령 (Age)', genderLabel: '성별 (Gender)',
+    genderM: '남성', genderF: '여성', genderU: '미지정',
+    heightWeightLabel: '📏 신장 및 체중 (Height & Weight)',
+    htFtLabel: '키 (ft)', htInLabel: '추가 (inch)', wtLbLabel: '체중 (lb)',
+    constitutionLabel: '🔖 체질 판별 (참고용)',
+    ccLabel: '💬 증상 직접 서술 (선택 단계 건너뛰기 가능)',
+    ccNoteText: '원하는 증상을 직접 입력하면 이후 단계를 건너뛰고 바로 처방을 생성할 수 있습니다.',
+    bodyPartLabel: '부위 분류 (12大門)',
+    bvFront: '앞면 (정면)', bvBack: '뒷면 (후면)', bvSide: '옆면 (측면)',
+    selectedTitlePre: '선택된 통증 부위 (', selectedTitleSuf: '개)',
+    noSelectMsg: '신체 부위를 클릭하여 통증 지점을 추가하세요.',
+    zoneNoteText: '부위를 선택하지 않고 다음 단계에서 직접 증상을 기술할 수도 있습니다',
+    lateralityLabel: '통증의 좌우 편측 (Laterality)',
+    durationLabel: '유병 기간 (Duration)',
+    symptomsLabel: '주요 호소 증상 (복수 선택 가능)',
+    painQualityLabel: '통증 성질 및 감각 (Pain Quality)',
+    aggravLabel: '악화 및 완화 요인 (Aggravating Factors)',
+    notesLabel: '추가 임상 소견 및 특이사항',
+    notesPh: '예: 야간에 심하여 수면 장애 동반. 운동 시 호전. 이전 치료 경과.',
+    tongueLabel: '1. 설진 조건 (Tongue Diagnosis)', tongueMul: '다중 선택 가능',
+    pulseLabel: '2. 맥진 소견 (Pulse Diagnosis)',
+    pulseDepthL: '浮脈 (부 — 겉/가벼운 탈)', pulseDepthR: '沈脈 (침 — 깊이 눌러야 탈)',
+    pulseRateL: '遲脈 (지 — 느린 탈)', pulseRateR: '數脈 (삭 — 빠른)',
+    btnNextS1: '다음: 신체 탭 (3-View) 통증 부위 선택 →',
+    btnPrevS2: '← 이전: 기본정보', btnNextS2: '다음: 상세 문진 →',
+    btnPrevS3: '← 이전: 신체 탭', btnSkipS4: '설-맥진 바로 가기 →', btnNextS3: '다음: 설-맥진 →',
+    btnPrevS4: '← 이전: 상세 문진', btnPrevS5: '← 이전: 설-맥진',
+    bmiNormal: '정상', bmiOverweight: '과체중', bmiObese: '비만', bmiUnder: '저체중',
+    bmiPrefix: '신장: ', bmiSep: ' · BMI 지수: ',
+    constChips: ['미론병 (소음/음체)', '보통 (평체)', '비번형 (태음/습담)', '근육형 (양명/실증)', '부종형 (수술정체)'],
+    durChips: ['당일 급성', '3일 이내', '1주 이내', '1개월 이내', '1–3개월', '3개월 이상 (만성)', '1년 이상 (교질)'],
+    sympChips: ['극심한 관절통', '뻐근한 근육통', '신경통/저림', '보행 장애', '관절 가동범위 제한', '두통/어지럼증', '소화불량/속쓰림', '만성 피로/기력저하', '불면/자율신경실조증'],
+    pqChips: ['욱씬거림', '찌르는 통증', '쪽박/비교', '당김/경련', '찢어짐/찰과', '화끈거림 (열감)', '시림 (한감)', '묵직함/당김'],
+    agChips: ['움직일 때/보행 시 악화', '오래 앉아있을 때 악화', '음식/식사 시 악화', '아침 기상 시 뻣뻣함', '야간에 심해짐', '추위/한냉에 악화', '비오거나 흐린 날 악화', '스트레스 받을 때 악화'],
+    tongueNames: ['담홍설 (淡紅色)', '홍설 (紅色)', '암설 (暗設)', '담백설 (淡白色)', '청자어 (靑紫)', '황태 (黃苔)', '백태·경병 (白苔)', '무태·경병설 (無苔)', '열홍설 (裂紋舌)'],
+    tongueDescs: ['정상 설진, 기혈 조화', '열증/음허', '어혈 관련', '기혈허, 양허증', '한증(냉증), 어혈', '이습증(濕熱)', '표증, 한증', '음허, 위음부족', '음허 또는 열성'],
+    catChips: ['두부', '경부/항부', '흉부', '복부', '허리/요부', '족부/수족지', '안면/이비인후', '피부근골', '비뇨생식', '전신기혈', '부인과', '소아과'],
+    pulseDepthLabels: ['부맥 (매우 浮)','부맥 (浮)','부중맥','부중맥','중맥','중간 (보통)','중침맥','중침맥','침맥','침맥 (沈)','침맥 (매우 沈)'],
+    pulseRateLabels: ['지맥 (매우 遲)','지맥 (遲)','지완맥','완맥','완맥','평맥 (보통)','평삭맥','삭맥','삭맥 (數)','삭맥 (數)','삭맥 (매우 數)'],
   },
   en: {
     noData: 'No personal data stored',
@@ -1295,6 +1354,48 @@ const TRANSLATIONS = {
     btnInstant: '⚡ Quick Prescription (Skip Steps) →',
     btnReset: '↺ New Patient', btnReprescribe: '↺ Re-generate',
     ccPh: 'e.g. 70M, bilateral hip & gluteal pain x 10 months, worse with walking, R>L...',
+    emptyText: 'Enter patient information and click Generate Prescription.',
+    s1Badge: '⚕ STEP 1. Patient Basic Info', s2Badge: '🫀 STEP 2. Body Map (3-View)',
+    s3Badge: '🔎 STEP 3. Symptom Inquiry', s4Badge: '👅 STEP 4. Tongue & Pulse',
+    ageLabel: 'Age', genderLabel: 'Gender',
+    genderM: 'Male', genderF: 'Female', genderU: 'Unspecified',
+    heightWeightLabel: '📏 Height & Weight',
+    htFtLabel: 'Height (ft)', htInLabel: 'Extra (in)', wtLbLabel: 'Weight (lb)',
+    constitutionLabel: '🔖 Constitution Type (Ref.)',
+    ccLabel: '💬 Chief Complaint (skip steps)',
+    ccNoteText: 'Describe symptoms to skip steps and generate prescription directly.',
+    bodyPartLabel: 'Body Region (12 Categories)',
+    bvFront: 'Front View', bvBack: 'Back View', bvSide: 'Side View',
+    selectedTitlePre: 'Selected Zones (', selectedTitleSuf: ')',
+    noSelectMsg: 'Click body zones to add pain points.',
+    zoneNoteText: 'You may skip this and describe symptoms in the next step.',
+    lateralityLabel: 'Laterality',
+    durationLabel: 'Duration',
+    symptomsLabel: 'Chief Symptoms (multi-select)',
+    painQualityLabel: 'Pain Quality',
+    aggravLabel: 'Aggravating Factors',
+    notesLabel: 'Additional Clinical Notes',
+    notesPh: 'e.g. Night pain with sleep disruption. Improves with exercise. Prior treatment history...',
+    tongueLabel: '1. Tongue Diagnosis', tongueMul: 'multi-select',
+    pulseLabel: '2. Pulse Diagnosis',
+    pulseDepthL: 'Fu pulse (浮 — superficial)', pulseDepthR: 'Chen pulse (沈 — deep)',
+    pulseRateL: 'Chi pulse (遲 — slow)', pulseRateR: 'Shu pulse (數 — rapid)',
+    btnNextS1: 'Next: Body Map →',
+    btnPrevS2: '← Back: Basic Info', btnNextS2: 'Next: Symptoms →',
+    btnPrevS3: '← Back: Body Map', btnSkipS4: 'Skip to Tongue & Pulse →', btnNextS3: 'Next: Tongue & Pulse →',
+    btnPrevS4: '← Back: Symptoms', btnPrevS5: '← Back: Tongue & Pulse',
+    bmiNormal: 'Normal', bmiOverweight: 'Overweight', bmiObese: 'Obese', bmiUnder: 'Underweight',
+    bmiPrefix: 'Height: ', bmiSep: ' · BMI: ',
+    constChips: ['Yin Def. (Soeum)', 'Normal', 'Phlegm-Damp (Taeum)', 'Yang-Excess', 'Edema/Stagnant'],
+    durChips: ['Acute (today)', 'Within 3 days', 'Within 1 week', 'Within 1 month', '1–3 months', '3+ months (chronic)', '1+ year (stubborn)'],
+    sympChips: ['Severe joint pain', 'Muscle ache', 'Neuralgia/Numbness', 'Gait impairment', 'ROM limitation', 'Headache/Dizziness', 'Indigestion', 'Chronic fatigue', 'Insomnia/ANS disorder'],
+    pqChips: ['Throbbing', 'Stabbing', 'Squeezing', 'Pulling/Cramping', 'Tearing', 'Burning (heat)', 'Cold sensation', 'Heaviness/Tension'],
+    agChips: ['Worse with movement', 'Worse sitting long', 'Worse after eating', 'Morning stiffness', 'Worse at night', 'Worse with cold', 'Worse in wet weather', 'Worse with stress'],
+    tongueNames: ['Light Red (淡紅)', 'Red (紅色)', 'Dark (暗色)', 'Pale (淡白)', 'Blue-Purple (靑紫)', 'Yellow coat (黃苔)', 'White coat (白苔)', 'No coat (無苔)', 'Fissured (裂紋)'],
+    tongueDescs: ['Normal, balanced qi-blood', 'Heat / Yin deficiency', 'Blood stasis', 'Qi-blood def., Yang def.', 'Cold pattern, blood stasis', 'Damp-heat', 'Exterior / cold pattern', 'Yin def., Stomach yin def.', 'Yin def. or heat pattern'],
+    catChips: ['Head', 'Neck', 'Chest', 'Abdomen', 'Low Back', 'Foot/Toes', 'Face/ENT', 'Musculo', 'Uro-Gyn', 'Systemic', 'Gynecol.', 'Pediatric'],
+    pulseDepthLabels: ['Very superficial','Superficial','Slightly superficial','Slightly superficial','Moderate','Middle (normal)','Slightly deep','Slightly deep','Deep','Very deep','Extremely deep'],
+    pulseRateLabels: ['Very slow','Slow','Slow-moderate','Moderate','Moderate','Normal (平)','Slightly rapid','Rapid','Rapid','Very rapid','Extremely rapid'],
   },
   zh: {
     noData: '不储存个人身份信息',
@@ -1323,6 +1424,48 @@ const TRANSLATIONS = {
     btnInstant: '⚡ 快速处方（跳过步骤）→',
     btnReset: '↺ 新患者诊疗', btnReprescribe: '↺ 重新生成',
     ccPh: '例: 70岁男性，双侧髋关节及臀部疼痛持续10个月，行走时加重，右侧更重...',
+    emptyText: '请输入患者信息后点击生成处方。',
+    s1Badge: '⚕ 步骤1. 患者基本信息', s2Badge: '🫀 步骤2. 身体图谱 (3视角)',
+    s3Badge: '🔎 步骤3. 症状问诊', s4Badge: '👅 步骤4. 舌诊·脉诊',
+    ageLabel: '年龄', genderLabel: '性别',
+    genderM: '男性', genderF: '女性', genderU: '未指定',
+    heightWeightLabel: '📏 身高·体重',
+    htFtLabel: '身高 (ft)', htInLabel: '追加 (inch)', wtLbLabel: '体重 (lb)',
+    constitutionLabel: '🔖 体质判别 (参考)',
+    ccLabel: '💬 症状直接描述 (可跳过步骤)',
+    ccNoteText: '直接输入症状后，可跳过后续步骤直接生成处方。',
+    bodyPartLabel: '部位分类 (12大门)',
+    bvFront: '正面', bvBack: '背面', bvSide: '侧面',
+    selectedTitlePre: '已选部位 (', selectedTitleSuf: '个)',
+    noSelectMsg: '点击身体部位以添加疼痛点。',
+    zoneNoteText: '也可跳过此步骤，在下一步直接描述症状。',
+    lateralityLabel: '疼痛侧别',
+    durationLabel: '病程时间',
+    symptomsLabel: '主要症状 (可多选)',
+    painQualityLabel: '疼痛性质',
+    aggravLabel: '加重·缓解因素',
+    notesLabel: '附加临床备注',
+    notesPh: '例: 夜间疼痛伴睡眠障碍。运动后好转。既往治疗经过。',
+    tongueLabel: '1. 舌诊 (Tongue Diagnosis)', tongueMul: '可多选',
+    pulseLabel: '2. 脉诊 (Pulse Diagnosis)',
+    pulseDepthL: '浮脉 (轻取)', pulseDepthR: '沉脉 (重按)',
+    pulseRateL: '迟脉 (缓慢)', pulseRateR: '数脉 (快速)',
+    btnNextS1: '下一步：身体图谱 →',
+    btnPrevS2: '← 上一步：基本信息', btnNextS2: '下一步：症状问诊 →',
+    btnPrevS3: '← 上一步：身体图谱', btnSkipS4: '直接进入舌诊脉诊 →', btnNextS3: '下一步：舌诊脉诊 →',
+    btnPrevS4: '← 上一步：症状问诊', btnPrevS5: '← 上一步：舌诊脉诊',
+    bmiNormal: '正常', bmiOverweight: '超重', bmiObese: '肥胖', bmiUnder: '体重不足',
+    bmiPrefix: '身高: ', bmiSep: ' · BMI: ',
+    constChips: ['阴虚型 (少阴)', '普通型', '痰湿型 (太阴)', '阳盛型 (阳明)', '水肿/瘀滞型'],
+    durChips: ['当日急性', '3日内', '1周内', '1个月内', '1-3个月', '3个月以上 (慢性)', '1年以上 (顽固)'],
+    sympChips: ['剧烈关节痛', '肌肉酸痛', '神经痛/麻木', '步行障碍', '关节活动受限', '头痛/眩晕', '消化不良', '慢性疲劳', '失眠/自律神经失调'],
+    pqChips: ['搏动性痛', '刺痛', '压迫感', '牵拉/痉挛', '撕裂感', '灼热感', '寒冷感', '沉重/胀痛'],
+    agChips: ['运动时加重', '久坐加重', '进食后加重', '晨起僵硬', '夜间加重', '遇冷加重', '阴天加重', '压力大时加重'],
+    tongueNames: ['淡红舌', '红舌', '暗舌', '淡白舌', '青紫舌', '黄苔', '白苔', '无苔', '裂纹舌'],
+    tongueDescs: ['正常，气血调和', '热证/阴虚', '血瘀', '气血虚，阳虚', '寒证，血瘀', '湿热', '表证，寒证', '阴虚，胃阴不足', '阴虚或热证'],
+    catChips: ['头部', '颈部', '胸部', '腹部', '腰部', '足部', '面部/耳鼻', '筋骨', '泌尿生殖', '全身气血', '妇科', '儿科'],
+    pulseDepthLabels: ['极浮','浮','略浮','略浮','中浮','中等 (正常)','略沉','略沉','沉','极沉','最沉'],
+    pulseRateLabels: ['极迟','迟','略迟','略缓','略缓','平脉 (正常)','略数','数','数脉','极数','最数'],
   }
 };
 let currentLang = 'ko';
@@ -1367,6 +1510,58 @@ function setLang(lang) {
   const subs = [t.s1Sub, t.s2Sub, t.s3Sub, t.s4Sub];
   sectionTitles.forEach((el, i) => { if (titles[i]) el.textContent = titles[i]; });
   sectionSubs.forEach((el, i) => { if (subs[i]) el.textContent = subs[i]; });
+  // Section badges
+  ['s1Badge','s2Badge','s3Badge','s4Badge'].forEach(id => {
+    const el = document.getElementById(id); if (el && t[id]) el.textContent = t[id];
+  });
+  // Note elements
+  const ccN = document.getElementById('ccNoteEl'); if (ccN) ccN.textContent = t.ccNoteText;
+  const zN = document.getElementById('zoneNoteEl'); if (zN) zN.textContent = t.zoneNoteText;
+  // Placeholder for additionalNotes
+  const an = document.getElementById('additionalNotes'); if (an && t.notesPh) an.placeholder = t.notesPh;
+  // Selected zones title
+  const zcs = document.getElementById('zoneCountSuffix');
+  if (zcs) {
+    const cnt = document.getElementById('zoneCount').textContent;
+    document.getElementById('selectedTitle').childNodes[0].textContent = t.selectedTitlePre;
+    zcs.textContent = t.selectedTitleSuf;
+  }
+  // No-select message (only if currently showing)
+  const nsm = document.getElementById('noSelectMsg'); if (nsm) nsm.textContent = t.noSelectMsg;
+  // Tongue label
+  const tlEl = document.getElementById('tongueLabelEl');
+  if (tlEl) {
+    const mEl = document.getElementById('tongueMulEl');
+    if (mEl) mEl.textContent = t.tongueMul;
+    // Update main text node (first child)
+    tlEl.childNodes[0].textContent = t.tongueLabel + ' ';
+  }
+  // Pulse slider labels
+  const pdL = document.getElementById('pulseDepthL'); if (pdL) pdL.textContent = t.pulseDepthL;
+  const pdR = document.getElementById('pulseDepthR'); if (pdR) pdR.textContent = t.pulseDepthR;
+  const prL = document.getElementById('pulseRateL'); if (prL) prL.textContent = t.pulseRateL;
+  const prR = document.getElementById('pulseRateR'); if (prR) prR.textContent = t.pulseRateR;
+  // Chip groups (display text only; Korean kept in JS for backend)
+  const chipGroups = [
+    ['constitutionGroup','constChips'],['durationGroup','durChips'],
+    ['symptomsGroup','sympChips'],['painQualityGroup','pqChips'],['aggravGroup','agChips']
+  ];
+  chipGroups.forEach(([gid, key]) => {
+    const chips = document.querySelectorAll(`#${gid} .chip`);
+    (t[key]||[]).forEach((txt, i) => { if (chips[i]) chips[i].textContent = txt; });
+  });
+  // Tongue cards
+  const tongueCards = document.querySelectorAll('#tongueGrid .tongue-card');
+  (t.tongueNames||[]).forEach((name, i) => { if (tongueCards[i]) tongueCards[i].querySelector('.tongue-name').textContent = name; });
+  (t.tongueDescs||[]).forEach((desc, i) => { if (tongueCards[i]) tongueCards[i].querySelector('.tongue-desc').textContent = desc; });
+  // Category chips (only the .cat-ko label)
+  const catCh = document.querySelectorAll('#catGrid .cat-chip .cat-ko');
+  (t.catChips||[]).forEach((lbl, i) => { if (catCh[i]) catCh[i].textContent = lbl; });
+  // BMI (re-render with new language)
+  calcBMI();
+  // Pulse sliders (re-render)
+  updateSlider(document.getElementById('pulseDepth'),'pulseDepthVal');
+  updateSlider(document.getElementById('pulseRate'),'pulseRateVal');
 }
 
 // Init lang from storage
