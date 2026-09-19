@@ -4575,8 +4575,12 @@ export default {
 
       if (!geminiRes!.ok) {
         const errText = await geminiRes!.text().catch(() => "");
+        const status = geminiRes!.status;
+        let userMsg = `Gemini API 오류 (${status})`;
+        if (status === 429) userMsg = "Gemini API 일일 쿼터 초과 — Google AI Studio에서 유료 플랜 활성화 필요 (aistudio.google.com)";
+        else if (status === 503) userMsg = "Gemini API 일시 과부하 — 잠시 후 재시도하세요";
         return Response.json(
-          { detail: `[DEBUG] status=${geminiRes!.status} | ${errText}` },
+          { detail: userMsg, debug: `status=${status}` },
           { status: 502, headers: CORS_HEADERS }
         );
       }
